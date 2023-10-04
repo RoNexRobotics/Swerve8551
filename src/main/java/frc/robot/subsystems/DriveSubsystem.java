@@ -6,9 +6,14 @@ package frc.robot.subsystems;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
 
@@ -22,24 +27,52 @@ public class DriveSubsystem extends SubsystemBase {
   private final SwerveModule m_rearRightModule = new SwerveModule(
     DriveConstants.kRearRightDriveID, DriveConstants.kRearRightTurnID, DriveConstants.kRearRightEncoderID, "RR");
 
+  private final AHRS m_gyro = new AHRS(SPI.Port.kMXP);
+
+  SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
+    DriveConstants.kDriveKinematics,
+    getHeading(),
+    new SwerveModulePosition[] {
+      m_frontLeftModule.getPosition(),
+      m_frontRightModule.getPosition(),
+      m_rearLeftModule.getPosition(),
+      m_rearRightModule.getPosition(),
+    });
+
   /** Creates a new DriveSubsystem. */
-  public DriveSubsystem() {}
+  public DriveSubsystem() {
+    // DriveSubsystem Logging
+    Logger.getInstance().recordOutput("RobotHeadingDegrees", getHeading().getDegrees());
+    Logger.getInstance().recordOutput("RobotPose", m_odometry.getPoseMeters());
+  }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    // Update odometry
+    m_odometry.update(
+      getHeading(),
+      new SwerveModulePosition[] {
+        m_frontLeftModule.getPosition(),
+        m_frontRightModule.getPosition(),
+        m_rearLeftModule.getPosition(),
+        m_rearRightModule.getPosition(),
+      });
   }
 
-  public void drive(double xSpeed, double ySpeed, double rotSpeed) {
-    ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed, Rotation2d.fromDegrees(0));
+  public Pose2d getPose() {
+    return m_odometry.getPoseMeters();
+  }
 
-    SwerveModuleState[] states = DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
+  public Rotation2d getHeading() {
+    return m_gyro.getRotation2d();
+  }
 
+  public void setModuleStates(SwerveModuleState[] states) {
     Logger.getInstance().recordOutput("SwerveModuleStates", states);
 
     m_frontLeftModule.setModuleState(states[1]);
     m_frontRightModule.setModuleState(states[0]);
     m_rearLeftModule.setModuleState(states[3]);
-    m_rearRightModule.setModuleState(states[2]);
+    // m_rearRightModule.setModuleState(states[2]);
   }
 }

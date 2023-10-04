@@ -33,6 +33,9 @@ public final class Constants {
   public static class DriveConstants {
     // Constants that are not the same across all swerve modules
 
+    public static final double kPhysicalMaxSpeedMetersPerSecond = 5;
+    public static final double kPhysicalMaxAngularSpeedRadiansPerSecond = 2 * 2 * Math.PI;
+
     // Motor CAN IDs
     public static final int kFrontLeftDriveID = 1;
     public static final int kFrontRightDriveID = 3;
@@ -52,9 +55,9 @@ public final class Constants {
     // Chassis configuration
 
     // Distance between centers of right and left wheels on robot
-    public static final double kTrackWidth = Units.inchesToMeters(28.25); // TODO: Check these
+    public static final double kTrackWidth = Units.inchesToMeters(24.5);
     // Distance between front and back wheels on robot
-    public static final double kWheelBase = Units.inchesToMeters(28.25); // TODO: Check these
+    public static final double kWheelBase = Units.inchesToMeters(24.5);
 
     public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
       new Translation2d(kWheelBase / 2, kTrackWidth / 2), // Front left
@@ -67,16 +70,16 @@ public final class Constants {
     // Constants that are the same across all swerve modules
 
     // PID Values
-    public static final double kDriveP = 0.6; // TODO: Tune these
+    public static final double kDriveP = 0.8; // TODO: Tune these
     public static final double kDriveI = 0;
     public static final double kDriveD = 0;
 
-    public static final double kTurnP = 0.6;
+    public static final double kTurnP = 0.8;
     public static final double kTurnI = 0;
     public static final double kTurnD = 0;
 
     // Motor conversion factors
-    public static final double kWheelDiameterMeters = Units.inchesToMeters(4); // TODO: Check all this
+    public static final double kWheelDiameterMeters = Units.inchesToMeters(4);
     public static final double kDrivingMotorReduction = 7.36 / 1;
 
     public static final double kDriveEncoderPositionFactor = (kWheelDiameterMeters * Math.PI)
@@ -87,5 +90,6 @@ public final class Constants {
 
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+    public static final double kDriverControllerDeadband = 0.1;
   }
 }

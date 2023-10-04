@@ -74,9 +74,6 @@ public class Robot extends LoggedRobot {
         break;
     }
 
-    // See http://bit.ly/3YIzFZ6 for more information on timestamps in AdvantageKit.
-    // Logger.getInstance().disableDeterministicTimestamps()
-
     // Start AdvantageKit logger
     logger.start();
 
