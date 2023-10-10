@@ -60,10 +60,10 @@ public final class Constants {
     public static final double kWheelBase = Units.inchesToMeters(24.5);
 
     public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
-      new Translation2d(kWheelBase / 2, kTrackWidth / 2), // Front left
       new Translation2d(kWheelBase / 2, -kTrackWidth / 2), // Front right
-      new Translation2d(-kWheelBase / 2, kTrackWidth / 2), // Rear left
-      new Translation2d(-kWheelBase / 2, -kTrackWidth / 2)); // Rear right
+      new Translation2d(kWheelBase / 2, kTrackWidth / 2), // Front left
+      new Translation2d(-kWheelBase / 2, -kTrackWidth / 2), // Rear right
+      new Translation2d(-kWheelBase / 2, kTrackWidth / 2)); // Rear left
   }
 
   public static class ModuleConstants {
@@ -74,7 +74,7 @@ public final class Constants {
     public static final double kDriveI = 0;
     public static final double kDriveD = 0;
 
-    public static final double kTurnP = 0.8;
+    public static final double kTurnP = 1;
     public static final double kTurnI = 0;
     public static final double kTurnD = 0;
 

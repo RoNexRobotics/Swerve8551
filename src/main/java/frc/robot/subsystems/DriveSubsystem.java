@@ -70,9 +70,16 @@ public class DriveSubsystem extends SubsystemBase {
   public void setModuleStates(SwerveModuleState[] states) {
     Logger.getInstance().recordOutput("SwerveModuleStates", states);
 
-    m_frontLeftModule.setModuleState(states[1]);
-    m_frontRightModule.setModuleState(states[0]);
-    m_rearLeftModule.setModuleState(states[3]);
-    // m_rearRightModule.setModuleState(states[2]);
+    m_frontLeftModule.setModuleState(states[0]);
+    // m_frontRightModule.setModuleState(states[1]);
+    m_rearLeftModule.setModuleState(states[2]);
+    // m_rearRightModule.setModuleState(states[3]);
+  }
+
+  public void stopModules() {
+    m_frontLeftModule.stop();
+    m_frontRightModule.stop();
+    m_rearLeftModule.stop();
+    m_rearRightModule.stop();
   }
 }
