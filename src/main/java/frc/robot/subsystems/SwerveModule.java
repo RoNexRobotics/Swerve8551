@@ -10,6 +10,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -76,10 +77,11 @@ public class SwerveModule {
     // );
     m_driveMotor.set(0);
 
-    var pidstuff = m_turnPIDController.calculate(getAbsolutePosition().getRadians(), 0);
+    m_turnPIDController.setSetpoint(0);
+    var pidstuff = MathUtil.clamp(m_turnPIDController.calculate(getAbsolutePosition().getRadians(), 0), -1, 1);
 
     SmartDashboard.putNumber(m_moduleName+" PID Value", pidstuff);
-    // m_turnMotor.set(pidstuff);
+    m_turnMotor.set(pidstuff);
   }
 
   public void stop() {
