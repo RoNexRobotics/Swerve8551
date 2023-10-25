@@ -38,12 +38,12 @@ public final class Constants {
 
     // Motor CAN IDs
     public static final int kFrontLeftDriveID = 1;
-    public static final int kFrontRightDriveID = 3;
-    public static final int kRearLeftDriveID = 5;
+    public static final int kFrontRightDriveID = 5;
+    public static final int kRearLeftDriveID = 3;
     public static final int kRearRightDriveID = 7;
     public static final int kFrontLeftTurnID = 2;
-    public static final int kFrontRightTurnID = 4;
-    public static final int kRearLeftTurnID = 6;
+    public static final int kFrontRightTurnID = 6;
+    public static final int kRearLeftTurnID = 4;
     public static final int kRearRightTurnID = 8;
 
     // Encoder CAN IDs
@@ -53,6 +53,18 @@ public final class Constants {
     public static final int kRearRightEncoderID = 12;
 
     // Chassis configuration
+
+    // Magnetic offsets
+    public static final double kFrontLeftMagneticOffset = -135.5;
+    public static final double kFrontRightMagneticOffset = -156.182;
+    public static final double kRearLeftMagneticOffset = -194.5;
+    public static final double kRearRightMagneticOffset = 9.141;
+
+    // Drive motor inverting stuff
+    public static final boolean kFrontLeftDriveInverted = false;
+    public static final boolean kFrontRightDriveInverted = true;
+    public static final boolean kRearLeftDriveInverted = false;
+    public static final boolean kRearRightDriveInverted = true;
 
     // Distance between centers of right and left wheels on robot
     public static final double kTrackWidth = Units.inchesToMeters(24.5);
@@ -70,13 +82,9 @@ public final class Constants {
     // Constants that are the same across all swerve modules
 
     // PID Values
-    public static final double kDriveP = 0.8; // TODO: Tune these
-    public static final double kDriveI = 0;
-    public static final double kDriveD = 0;
-
-    public static final double kTurnP = 1;
+    public static final double kTurnP = 0.4;
     public static final double kTurnI = 0;
-    public static final double kTurnD = 0;
+    public static final double kTurnD = 0.006;
 
     // Motor conversion factors
     public static final double kWheelDiameterMeters = Units.inchesToMeters(4);

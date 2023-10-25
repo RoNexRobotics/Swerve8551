@@ -10,6 +10,7 @@ import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -19,13 +20,13 @@ import frc.robot.Constants.DriveConstants;
 
 public class DriveSubsystem extends SubsystemBase {
   private final SwerveModule m_frontLeftModule = new SwerveModule(
-    DriveConstants.kFrontLeftDriveID, DriveConstants.kFrontLeftTurnID, DriveConstants.kFrontLeftEncoderID, "FL");
+    DriveConstants.kFrontLeftDriveID, DriveConstants.kFrontLeftTurnID, DriveConstants.kFrontLeftEncoderID, DriveConstants.kFrontLeftMagneticOffset, DriveConstants.kFrontLeftDriveInverted, "FL");
   private final SwerveModule m_frontRightModule = new SwerveModule(
-    DriveConstants.kFrontRightDriveID, DriveConstants.kFrontRightTurnID, DriveConstants.kFrontRightEncoderID, "FR");
+    DriveConstants.kFrontRightDriveID, DriveConstants.kFrontRightTurnID, DriveConstants.kFrontRightEncoderID, DriveConstants.kFrontRightMagneticOffset, DriveConstants.kFrontRightDriveInverted, "FR");
   private final SwerveModule m_rearLeftModule = new SwerveModule(
-    DriveConstants.kRearLeftDriveID, DriveConstants.kRearLeftTurnID, DriveConstants.kRearLeftEncoderID, "RL");
+    DriveConstants.kRearLeftDriveID, DriveConstants.kRearLeftTurnID, DriveConstants.kRearLeftEncoderID, DriveConstants.kRearLeftMagneticOffset, DriveConstants.kRearLeftDriveInverted, "RL");
   private final SwerveModule m_rearRightModule = new SwerveModule(
-    DriveConstants.kRearRightDriveID, DriveConstants.kRearRightTurnID, DriveConstants.kRearRightEncoderID, "RR");
+    DriveConstants.kRearRightDriveID, DriveConstants.kRearRightTurnID, DriveConstants.kRearRightEncoderID, DriveConstants.kRearRightMagneticOffset, DriveConstants.kRearRightDriveInverted, "RR");
 
   private final AHRS m_gyro = new AHRS(SPI.Port.kMXP);
 
@@ -70,10 +71,12 @@ public class DriveSubsystem extends SubsystemBase {
   public void setModuleStates(SwerveModuleState[] states) {
     Logger.getInstance().recordOutput("SwerveModuleStates", states);
 
+    SwerveDriveKinematics.desaturateWheelSpeeds(states, 1);
+
     m_frontLeftModule.setModuleState(states[0]);
-    // m_frontRightModule.setModuleState(states[1]);
+    m_frontRightModule.setModuleState(states[1]);
     m_rearLeftModule.setModuleState(states[2]);
-    // m_rearRightModule.setModuleState(states[3]);
+    m_rearRightModule.setModuleState(states[3]);
   }
 
   public void stopModules() {
