@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.DriveWithJoystickCmd;
+import frc.robot.commands.TestAutoCmd;
 import frc.robot.subsystems.DriveSubsystem;
 
 /**
@@ -27,6 +28,7 @@ public class RobotContainer {
 
   // Robot commands
   DriveWithJoystickCmd m_driveWithJoystickCmd = new DriveWithJoystickCmd(m_driveSubsystem, m_driverController);
+  TestAutoCmd m_testAutoCmd = new TestAutoCmd(m_driveSubsystem);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -52,6 +54,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return null;
+    return m_testAutoCmd;
   }
 }

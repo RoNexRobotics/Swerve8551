@@ -15,6 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
 
@@ -49,6 +50,9 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    SmartDashboard.putNumber("RobotRotation", getHeading().getDegrees());
+    Logger.getInstance().recordOutput("RobotRotation", getHeading().getDegrees());
+
     // Update odometry
     m_odometry.update(
       getHeading(),

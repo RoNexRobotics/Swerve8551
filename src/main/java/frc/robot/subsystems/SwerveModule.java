@@ -48,7 +48,7 @@ public class SwerveModule {
     m_turnEncoder.configFactoryDefault();
     m_turnEncoder.configMagnetOffset(magneticOffset);
     m_turnEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Signed_PlusMinus180);
-    m_turnEncoder.configSensorDirection(false);
+    m_turnEncoder.configSensorDirection(true);
 
     m_turnPIDController.enableContinuousInput(-Math.PI, Math.PI);
     m_turnPIDController.setTolerance(1);
@@ -66,24 +66,21 @@ public class SwerveModule {
   }
 
   private Rotation2d getAbsolutePosition() {
-    return Rotation2d.fromDegrees(-m_turnEncoder.getAbsolutePosition());
+    return Rotation2d.fromDegrees(m_turnEncoder.getAbsolutePosition());
   }
 
   public void setModuleState(SwerveModuleState desiredState) {
     SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getAbsolutePosition());
 
-    // SmartDashboard.putNumber(m_moduleName+" Opt Speed", optimizedState.speedMetersPerSecond);
-    // SmartDashboard.putNumber(m_moduleName+" Opt Angle", optimizedState.angle.getDegrees());
+    SmartDashboard.putNumber(m_moduleName+" Opt Speed", optimizedState.speedMetersPerSecond);
+    SmartDashboard.putNumber(m_moduleName+" Opt Angle", optimizedState.angle.getDegrees());
     SmartDashboard.putNumber(m_moduleName+" Absolute Pos", getAbsolutePosition().getDegrees());
-    SmartDashboard.putNumber(m_moduleName+" Unopt Speed", desiredState.speedMetersPerSecond);
-    SmartDashboard.putNumber(m_moduleName+" UnOpt Angle", desiredState.angle.getDegrees());
+    // SmartDashboard.putNumber(m_moduleName+" Unopt Speed", desiredState.speedMetersPerSecond);
+    // SmartDashboard.putNumber(m_moduleName+" UnOpt Angle", desiredState.angle.getDegrees());
 
-    m_driveMotor.set(0.4* optimizedState.speedMetersPerSecond);
+    m_driveMotor.set(0.4 * optimizedState.speedMetersPerSecond);
 
-    // var pidCalc = m_turnPIDController.calculate(getAbsolutePosition().getRadians(), Math.PI / 4);
-    var pidCalc = m_turnPIDController.calculate(getAbsolutePosition().getRadians(), optimizedState.angle.getRadians());
-    SmartDashboard.putNumber(m_moduleName + " PID Calc", pidCalc);
-    m_turnMotor.set(pidCalc);
+    m_turnMotor.set(m_turnPIDController.calculate(getAbsolutePosition().getRadians(), optimizedState.angle.getRadians()));
   }
 
   public void stop() {
