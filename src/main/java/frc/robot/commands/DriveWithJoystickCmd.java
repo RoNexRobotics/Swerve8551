@@ -8,9 +8,8 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.DriveSubsystem;
@@ -18,10 +17,10 @@ import frc.robot.subsystems.DriveSubsystem;
 public class DriveWithJoystickCmd extends CommandBase {
   DriveSubsystem m_driveSubsystem;
 
-  XboxController m_controller;
+  CommandXboxController m_controller;
 
   /** Creates a new DriveWithJoystick. */
-  public DriveWithJoystickCmd(DriveSubsystem driveSubsystem, XboxController controller) {
+  public DriveWithJoystickCmd(DriveSubsystem driveSubsystem, CommandXboxController controller) {
     m_driveSubsystem = driveSubsystem;
     m_controller = controller;
 

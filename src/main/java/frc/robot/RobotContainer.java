@@ -4,12 +4,9 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.commands.PathPlannerAuto;
-
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.PS4Controller.Button;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.DriveWithJoystickCmd;
 import frc.robot.commands.TestAutoCmd;
@@ -26,7 +23,7 @@ public class RobotContainer {
   DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 
   // Controllers
-  XboxController m_driverController = new XboxController(OperatorConstants.kDriverControllerPort);
+  CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
   // Robot commands
   DriveWithJoystickCmd m_driveWithJoystickCmd = new DriveWithJoystickCmd(m_driveSubsystem, m_driverController);
@@ -49,6 +46,7 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    m_driverController.x().onTrue(new InstantCommand(m_driveSubsystem::resetHeading, m_driveSubsystem));
   }
 
   /**

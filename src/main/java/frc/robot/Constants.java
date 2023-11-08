@@ -20,9 +20,6 @@ public final class Constants {
   public static class DriveConstants {
     // Constants that are not the same across all swerve modules
 
-    public static final double kPhysicalMaxSpeedMetersPerSecond = 5;
-    public static final double kPhysicalMaxAngularSpeedRadiansPerSecond = 2 * 2 * Math.PI;
-
     // Motor CAN IDs
     public static final int kFrontLeftDriveID = 1;
     public static final int kFrontRightDriveID = 5;
