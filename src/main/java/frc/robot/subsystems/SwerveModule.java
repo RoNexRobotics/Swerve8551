@@ -34,22 +34,26 @@ public class SwerveModule {
     m_driveEncoder = m_driveMotor.getEncoder();
     m_turnEncoder = new CANCoder(encoderID);
 
+    // Drive motor configuration
     m_driveMotor.restoreFactoryDefaults();
-    m_turnMotor.restoreFactoryDefaults();
-
     m_driveMotor.setInverted(driveInverted);
 
+    // Turn motor configuration
+    m_turnMotor.restoreFactoryDefaults();
     m_turnMotor.setInverted(false);
     m_turnMotor.burnFlash();
 
+    // Drive encoder configuration
     m_driveEncoder.setPositionConversionFactor(ModuleConstants.kDriveEncoderPositionFactor);
     m_driveEncoder.setVelocityConversionFactor(ModuleConstants.kDriveEncoderVelocityFactor);
 
+    // Turn encoder configuration
     m_turnEncoder.configFactoryDefault();
     m_turnEncoder.configMagnetOffset(magneticOffset);
     m_turnEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Signed_PlusMinus180);
     m_turnEncoder.configSensorDirection(true);
 
+    // Turn PID controller configuration
     m_turnPIDController.enableContinuousInput(-Math.PI, Math.PI);
     m_turnPIDController.setTolerance(1);
     m_turnPIDController.reset();
@@ -78,7 +82,7 @@ public class SwerveModule {
     // SmartDashboard.putNumber(m_moduleName+" Unopt Speed", desiredState.speedMetersPerSecond);
     // SmartDashboard.putNumber(m_moduleName+" UnOpt Angle", desiredState.angle.getDegrees());
 
-    m_driveMotor.set(0.4 * optimizedState.speedMetersPerSecond);
+    m_driveMotor.set(0.8 * optimizedState.speedMetersPerSecond);
 
     m_turnMotor.set(m_turnPIDController.calculate(getAbsolutePosition().getRadians(), optimizedState.angle.getRadians()));
   }

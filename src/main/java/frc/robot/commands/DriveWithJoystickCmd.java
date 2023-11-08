@@ -5,9 +5,11 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OperatorConstants;
@@ -16,10 +18,10 @@ import frc.robot.subsystems.DriveSubsystem;
 public class DriveWithJoystickCmd extends CommandBase {
   DriveSubsystem m_driveSubsystem;
 
-  Joystick m_controller;
+  XboxController m_controller;
 
   /** Creates a new DriveWithJoystick. */
-  public DriveWithJoystickCmd(DriveSubsystem driveSubsystem, Joystick controller) {
+  public DriveWithJoystickCmd(DriveSubsystem driveSubsystem, XboxController controller) {
     m_driveSubsystem = driveSubsystem;
     m_controller = controller;
 
@@ -28,17 +30,23 @@ public class DriveWithJoystickCmd extends CommandBase {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    m_driveSubsystem.resetHeading();
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double xSpeed = -MathUtil.applyDeadband(m_controller.getY(), OperatorConstants.kDriverControllerDeadband);
-    double ySpeed = MathUtil.applyDeadband(m_controller.getX(), OperatorConstants.kDriverControllerDeadband);
-    double rotSpeed = MathUtil.applyDeadband(m_controller.getZ(), OperatorConstants.kDriverControllerDeadband);
+    // double xSpeed = -MathUtil.applyDeadband(m_controller.getY(), OperatorConstants.kDriverControllerDeadband);
+    // double ySpeed = MathUtil.applyDeadband(m_controller.getX(), OperatorConstants.kDriverControllerDeadband);
+    // double rotSpeed = MathUtil.applyDeadband(m_controller.getZ(), OperatorConstants.kDriverControllerDeadband);
 
-    // ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed, m_driveSubsystem.getHeading()); // TODO: This cool stuff
-    ChassisSpeeds chassisSpeeds = new ChassisSpeeds(xSpeed, ySpeed, rotSpeed);
+    double xSpeed = -MathUtil.applyDeadband(m_controller.getLeftY(), OperatorConstants.kDriverControllerDeadband);
+    double ySpeed = MathUtil.applyDeadband(m_controller.getLeftX(), OperatorConstants.kDriverControllerDeadband);
+    double rotSpeed = MathUtil.applyDeadband(m_controller.getRightX(), OperatorConstants.kDriverControllerDeadband);
+
+    ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed, Rotation2d.fromRadians(-m_driveSubsystem.getHeading().getRadians())); // TODO: This cool stuff
+    // ChassisSpeeds chassisSpeeds = new ChassisSpeeds(xSpeed, ySpeed, rotSpeed);
 
     SwerveModuleState[] states = DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
 
