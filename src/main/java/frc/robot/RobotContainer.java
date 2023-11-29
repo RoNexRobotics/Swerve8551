@@ -4,12 +4,13 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.DriveWithJoystickCmd;
-import frc.robot.commands.TestAutoCmd;
+import frc.robot.commands.DriveTeleopCmd;
 import frc.robot.subsystems.DriveSubsystem;
 
 /**
@@ -19,20 +20,19 @@ import frc.robot.subsystems.DriveSubsystem;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  // Robot subsystems
+  // Subsystems
   DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 
   // Controllers
-  CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  XboxController m_driverController = new XboxController(OperatorConstants.kDriverControllerPort);
 
-  // Robot commands
-  DriveWithJoystickCmd m_driveWithJoystickCmd = new DriveWithJoystickCmd(m_driveSubsystem, m_driverController);
-  TestAutoCmd m_testAutoCmd = new TestAutoCmd(m_driveSubsystem);
+  // Commands
+  DriveTeleopCmd m_driveTeleopCmd = new DriveTeleopCmd(m_driveSubsystem, m_driverController);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    m_driveSubsystem.setDefaultCommand(m_driveWithJoystickCmd);
-    
+    m_driveSubsystem.setDefaultCommand(m_driveTeleopCmd);
+
     configureBindings();
   }
 
@@ -46,7 +46,7 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    m_driverController.x().onTrue(new InstantCommand(m_driveSubsystem::resetHeading, m_driveSubsystem));
+    // m_driverController.x().onTrue(new InstantCommand(m_driveSubsystem::resetHeading, m_driveSubsystem));
   }
 
   /**
@@ -55,7 +55,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return m_testAutoCmd;
-    // return new PathPlannerAuto("New Auto");
+    return new PrintCommand("No auto!");
   }
 }

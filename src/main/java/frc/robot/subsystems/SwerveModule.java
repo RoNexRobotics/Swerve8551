@@ -11,6 +11,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -24,6 +25,7 @@ public class SwerveModule {
   private final CANCoder m_turnEncoder;
 
   private final PIDController m_turnPIDController = new PIDController(ModuleConstants.kTurnP, ModuleConstants.kTurnI, ModuleConstants.kTurnD);
+  private final SlewRateLimiter m_driveLimiter = new SlewRateLimiter(0.8);
 
   private final String m_moduleName;
 
@@ -37,6 +39,7 @@ public class SwerveModule {
     // Drive motor configuration
     m_driveMotor.restoreFactoryDefaults();
     m_driveMotor.setInverted(driveInverted);
+    m_driveMotor.burnFlash();
 
     // Turn motor configuration
     m_turnMotor.restoreFactoryDefaults();
@@ -55,39 +58,44 @@ public class SwerveModule {
 
     // Turn PID controller configuration
     m_turnPIDController.enableContinuousInput(-Math.PI, Math.PI);
-    m_turnPIDController.setTolerance(1);
+    m_turnPIDController.setTolerance(1); // TODO: Test whether this has any effect
     m_turnPIDController.reset();
 
     m_moduleName = moduleName;
   }
 
+  public void logStuff() {
+    // Log stuff about the modules
+    SmartDashboard.putNumber(m_moduleName+" Angle", getTurnAngle().getDegrees());
+    SmartDashboard.putNumber(m_moduleName+" Speed", m_driveEncoder.getVelocity());
+  }
+
   public SwerveModuleState getState() {
-    return new SwerveModuleState(m_driveEncoder.getVelocity(), getAbsolutePosition());
+    return new SwerveModuleState(m_driveEncoder.getVelocity(), getTurnAngle());
   }
 
   public SwerveModulePosition getPosition() {
-    return new SwerveModulePosition(m_driveEncoder.getPosition(), getAbsolutePosition());
+    return new SwerveModulePosition(m_driveEncoder.getPosition(), getTurnAngle());
   }
 
-  private Rotation2d getAbsolutePosition() {
+  private Rotation2d getTurnAngle() {
     return Rotation2d.fromDegrees(m_turnEncoder.getAbsolutePosition());
   }
 
   public void setModuleState(SwerveModuleState desiredState) {
-    SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getAbsolutePosition());
+    // Optimize the state so the wheel rotates the least distance possible
+    SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getTurnAngle());
 
-    SmartDashboard.putNumber(m_moduleName+" Opt Speed", optimizedState.speedMetersPerSecond);
-    SmartDashboard.putNumber(m_moduleName+" Opt Angle", optimizedState.angle.getDegrees());
-    SmartDashboard.putNumber(m_moduleName+" Absolute Pos", getAbsolutePosition().getDegrees());
-    // SmartDashboard.putNumber(m_moduleName+" Unopt Speed", desiredState.speedMetersPerSecond);
-    // SmartDashboard.putNumber(m_moduleName+" UnOpt Angle", desiredState.angle.getDegrees());
+    // Set the drive speed
+    // m_driveMotor.set(0.6 * optimizedState.speedMetersPerSecond);
+    m_driveMotor.set(m_driveLimiter.calculate(0.6 * optimizedState.speedMetersPerSecond)); // TODO: Check if this works and tune it
 
-    m_driveMotor.set(0.8 * optimizedState.speedMetersPerSecond);
-
-    m_turnMotor.set(m_turnPIDController.calculate(getAbsolutePosition().getRadians(), optimizedState.angle.getRadians()));
+    // Set the turn angle
+    m_turnMotor.set(m_turnPIDController.calculate(getTurnAngle().getRadians(), optimizedState.angle.getRadians()));
   }
 
   public void stop() {
+    // Stop both motors completely
     m_driveMotor.set(0);
     m_turnMotor.set(0);
   }

@@ -4,47 +4,36 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.LimelightSubsystem;
 
 public class TestAutoCmd extends CommandBase {
-  DriveSubsystem m_driveSubsystem;
-  Timer m_timer = new Timer();
+  private final DriveSubsystem m_driveSubsystem;
+  private final LimelightSubsystem m_limelightSubsystem;
+  private final PIDController m_xPIDController = new PIDController(0.005, 0, 0);
 
   /** Creates a new DriveWithJoystick. */
-  public TestAutoCmd(DriveSubsystem driveSubsystem) {
+  public TestAutoCmd(DriveSubsystem driveSubsystem, LimelightSubsystem limelightSubsystem) {
     m_driveSubsystem = driveSubsystem;
+    m_limelightSubsystem = limelightSubsystem;
 
-    addRequirements(driveSubsystem);
+    addRequirements(driveSubsystem, limelightSubsystem);
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {
-    m_timer.restart();
-  }
+  public void initialize() {}
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (m_timer.get() < 5) {
-        m_driveSubsystem.setModuleStates(new SwerveModuleState[] {
-            new SwerveModuleState(0.4, Rotation2d.fromDegrees(0)),
-            new SwerveModuleState(0.4, Rotation2d.fromDegrees(0)),
-            new SwerveModuleState(0.4, Rotation2d.fromDegrees(0)),
-            new SwerveModuleState(0.4, Rotation2d.fromDegrees(0))
-        });
-    } else {
-        m_driveSubsystem.setModuleStates(new SwerveModuleState[] {
-            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(0))
-        });
-    }
+    m_driveSubsystem.drive(
+      0,
+      -m_xPIDController.calculate(m_limelightSubsystem.getTargetX(), 165),
+      0
+      );
   }
 
   // Called once the command ends or is interrupted.
