@@ -58,7 +58,6 @@ public class SwerveModule {
 
     // Turn PID controller configuration
     m_turnPIDController.enableContinuousInput(-Math.PI, Math.PI);
-    m_turnPIDController.setTolerance(1); // TODO: Test whether this has any effect
     m_turnPIDController.reset();
 
     m_moduleName = moduleName;
@@ -88,7 +87,7 @@ public class SwerveModule {
 
     // Set the drive speed
     // m_driveMotor.set(0.6 * optimizedState.speedMetersPerSecond);
-    m_driveMotor.set(m_driveLimiter.calculate(0.6 * optimizedState.speedMetersPerSecond)); // TODO: Check if this works and tune it
+    m_driveMotor.set(m_driveLimiter.calculate(0.6 * optimizedState.speedMetersPerSecond));
 
     // Set the turn angle
     m_turnMotor.set(m_turnPIDController.calculate(getTurnAngle().getRadians(), optimizedState.angle.getRadians()));

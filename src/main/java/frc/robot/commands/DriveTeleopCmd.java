@@ -5,18 +5,18 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.DriveSubsystem;
 
 public class DriveTeleopCmd extends CommandBase {
   private final DriveSubsystem m_driveSubsystem;
 
-  private final XboxController m_controller;
+  private final CommandXboxController m_controller;
 
   /** Creates a new DriveWithJoystick. */
-  public DriveTeleopCmd(DriveSubsystem driveSubsystem, XboxController controller) {
+  public DriveTeleopCmd(DriveSubsystem driveSubsystem, CommandXboxController controller) {
     m_driveSubsystem = driveSubsystem;
     m_controller = controller;
 
@@ -42,7 +42,7 @@ public class DriveTeleopCmd extends CommandBase {
     double ySpeed = MathUtil.applyDeadband(m_controller.getLeftX(), OperatorConstants.kDriverControllerDeadband);
     double rotSpeed = MathUtil.applyDeadband(m_controller.getRightX(), OperatorConstants.kDriverControllerDeadband);
 
-    m_driveSubsystem.drive(xSpeed, ySpeed, rotSpeed, true);
+    m_driveSubsystem.drive(xSpeed, ySpeed, rotSpeed, false);
   }
 
   // Called once the command ends or is interrupted.

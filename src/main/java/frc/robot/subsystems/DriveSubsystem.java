@@ -36,7 +36,7 @@ public class DriveSubsystem extends SubsystemBase {
   private final SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
     DriveConstants.kDriveKinematics,
     getHeading(),
-    new SwerveModulePosition[] { // TODO: Try switching the order
+    new SwerveModulePosition[] {
       m_frontLeftModule.getPosition(),
       m_frontRightModule.getPosition(),
       m_rearLeftModule.getPosition(),

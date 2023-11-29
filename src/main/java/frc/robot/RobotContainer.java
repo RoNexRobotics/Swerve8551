@@ -4,13 +4,14 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.DriveTeleopCmd;
+import frc.robot.commands.TrackTargetAutoCmd;
 import frc.robot.subsystems.DriveSubsystem;
 
 /**
@@ -24,16 +25,19 @@ public class RobotContainer {
   DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 
   // Controllers
-  XboxController m_driverController = new XboxController(OperatorConstants.kDriverControllerPort);
+  CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
   // Commands
   DriveTeleopCmd m_driveTeleopCmd = new DriveTeleopCmd(m_driveSubsystem, m_driverController);
+  TrackTargetAutoCmd m_trackTargetAutoCmd = new TrackTargetAutoCmd(m_driveSubsystem);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     m_driveSubsystem.setDefaultCommand(m_driveTeleopCmd);
 
     configureBindings();
+
+    NetworkTableInstance.getDefault().getTable("photonvision").putValue("OV5647/ledModeState", NetworkTableValue.makeInteger(1, 0));
   }
 
   /**
@@ -46,7 +50,7 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // m_driverController.x().onTrue(new InstantCommand(m_driveSubsystem::resetHeading, m_driveSubsystem));
+    m_driverController.x().onTrue(new InstantCommand(m_driveSubsystem::resetHeading, m_driveSubsystem));
   }
 
   /**
@@ -55,6 +59,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return new PrintCommand("No auto!");
+    return m_trackTargetAutoCmd;
   }
 }
