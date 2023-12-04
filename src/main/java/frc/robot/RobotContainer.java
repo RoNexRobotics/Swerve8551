@@ -4,13 +4,12 @@
 
 package frc.robot;
 
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.NetworkTableValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.DriveTeleopCmd;
+import frc.robot.commands.GoToPoseCmd;
 import frc.robot.commands.TrackTargetAutoCmd;
 import frc.robot.subsystems.DriveSubsystem;
 
@@ -30,14 +29,13 @@ public class RobotContainer {
   // Commands
   DriveTeleopCmd m_driveTeleopCmd = new DriveTeleopCmd(m_driveSubsystem, m_driverController);
   TrackTargetAutoCmd m_trackTargetAutoCmd = new TrackTargetAutoCmd(m_driveSubsystem);
+  GoToPoseCmd m_goToPoseCmd = new GoToPoseCmd(m_driveSubsystem);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     m_driveSubsystem.setDefaultCommand(m_driveTeleopCmd);
 
     configureBindings();
-
-    NetworkTableInstance.getDefault().getTable("photonvision").putValue("OV5647/ledModeState", NetworkTableValue.makeInteger(1, 0));
   }
 
   /**
@@ -50,7 +48,9 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    m_driverController.x().onTrue(new InstantCommand(m_driveSubsystem::resetHeading, m_driveSubsystem));
+    m_driverController.rightBumper().onTrue(new InstantCommand(m_driveSubsystem::resetHeading, m_driveSubsystem));
+
+    m_driverController.y().onTrue(new InstantCommand(m_driveSubsystem::resetPose, m_driveSubsystem));
   }
 
   /**

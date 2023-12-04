@@ -39,10 +39,10 @@ public final class Constants {
     // Chassis configuration
 
     // Magnetic offsets
-    public static final double kFrontLeftMagneticOffset = -135.5;
-    public static final double kFrontRightMagneticOffset = -156.182;
-    public static final double kRearLeftMagneticOffset = -194.5;
-    public static final double kRearRightMagneticOffset = 9.141;
+    public static final double kFrontLeftMagneticOffset = -135.087890625;
+    public static final double kFrontRightMagneticOffset = -155.390625;
+    public static final double kRearLeftMagneticOffset = 164.00390625;
+    public static final double kRearRightMagneticOffset = 8.0859375;
 
     // Drive motor inverting stuff
     public static final boolean kFrontLeftDriveInverted = false;
@@ -66,22 +66,19 @@ public final class Constants {
     // Constants that are the same across all swerve modules
 
     // PID Values
+    // public static final double kTurnP = 0.4;
     public static final double kTurnP = 0.4;
     public static final double kTurnI = 0;
-    public static final double kTurnD = 0.006;
+    // public static final double kTurnD = 0.006;
+    public static final double kTurnD = 0;
 
     // Motor conversion factors
-    public static final double kWheelDiameterMeters = Units.inchesToMeters(4);
-    public static final double kDrivingMotorReduction = 7.36 / 1;
-
-    public static final double kDriveEncoderPositionFactor = (kWheelDiameterMeters * Math.PI)
-      / kDrivingMotorReduction; // meters
-    public static final double kDriveEncoderVelocityFactor = ((kWheelDiameterMeters * Math.PI)
-      / kDrivingMotorReduction) / 60.0; // meters per second
+    public static final double kDriveEncoderPositionFactor = 0.0434782608695652;
+    public static final double kDriveEncoderVelocityFactor = kDriveEncoderPositionFactor / 60.0;
   }
 
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
-    public static final double kDriverControllerDeadband = 0.1;
+    public static final double kDriverControllerDeadband = 0.05;
   }
 }

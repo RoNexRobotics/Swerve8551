@@ -7,7 +7,6 @@ package frc.robot.commands;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.DriveSubsystem;
 
@@ -16,13 +15,12 @@ public class TrackTargetAutoCmd extends CommandBase {
 
     private final NetworkTableInstance m_inst = NetworkTableInstance.getDefault();
     private final NetworkTable m_limelightTable;
-    private final String m_cameraKey = "OV5647/";
     private final PIDController m_yawPIDController = new PIDController(0.01, 0, 0);
     private final PIDController m_rangePIDController = new PIDController(0.05, 0, 0);
 
   /** Creates a new TrackTargetAutoCmd. */
   public TrackTargetAutoCmd(DriveSubsystem driveSubsystem) {
-    m_limelightTable = m_inst.getTable("photonvision");
+    m_limelightTable = m_inst.getTable("limelight");
 
     m_driveSubsystem = driveSubsystem;
 
@@ -32,27 +30,22 @@ public class TrackTargetAutoCmd extends CommandBase {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {
-  }
+  public void initialize() {}
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double targetYaw = m_limelightTable.getEntry(m_cameraKey+"targetYaw").getDouble(0);
-    double targetArea = m_limelightTable.getEntry(m_cameraKey+"targetArea").getDouble(8);
+    double targetX = m_limelightTable.getEntry("tx").getDouble(0);
+    double targetArea = m_limelightTable.getEntry("ta").getDouble(0);
 
     if (targetArea == 0) {
-      targetArea = 8;
+      targetArea = 6;
     }
 
-    SmartDashboard.putNumber("Target Yaw", targetYaw);
-    SmartDashboard.putNumber("Target Area", targetArea);
-
     m_driveSubsystem.drive(
-        m_rangePIDController.calculate(targetArea, 8),
-        0,
-        -m_yawPIDController.calculate(targetYaw, 0)
-        // 0
+      m_rangePIDController.calculate(targetArea, 6),
+      0,
+      -m_yawPIDController.calculate(targetX, 0)
     );
   }
 

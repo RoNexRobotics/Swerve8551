@@ -39,7 +39,7 @@ public class SwerveModule {
     // Drive motor configuration
     m_driveMotor.restoreFactoryDefaults();
     m_driveMotor.setInverted(driveInverted);
-    m_driveMotor.burnFlash();
+    // m_driveMotor.burnFlash();
 
     // Turn motor configuration
     m_turnMotor.restoreFactoryDefaults();
@@ -66,15 +66,23 @@ public class SwerveModule {
   public void logStuff() {
     // Log stuff about the modules
     SmartDashboard.putNumber(m_moduleName+" Angle", getTurnAngle().getDegrees());
-    SmartDashboard.putNumber(m_moduleName+" Speed", m_driveEncoder.getVelocity());
+    SmartDashboard.putNumber(m_moduleName+" Speed", m_driveMotor.get());
   }
 
   public SwerveModuleState getState() {
-    return new SwerveModuleState(m_driveEncoder.getVelocity(), getTurnAngle());
+    return new SwerveModuleState(getDriveVelocity(), getTurnAngle());
   }
 
   public SwerveModulePosition getPosition() {
-    return new SwerveModulePosition(m_driveEncoder.getPosition(), getTurnAngle());
+    return new SwerveModulePosition(getDrivePosition(), getTurnAngle());
+  }
+
+  public double getDrivePosition() {
+    return m_driveEncoder.getPosition();
+  }
+
+  public double getDriveVelocity() {
+    return m_driveEncoder.getVelocity();
   }
 
   private Rotation2d getTurnAngle() {
@@ -82,12 +90,16 @@ public class SwerveModule {
   }
 
   public void setModuleState(SwerveModuleState desiredState) {
+    if (Math.abs(desiredState.speedMetersPerSecond) < 0.001) {
+      stop();
+      return;
+    }
+    
     // Optimize the state so the wheel rotates the least distance possible
     SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getTurnAngle());
 
     // Set the drive speed
-    // m_driveMotor.set(0.6 * optimizedState.speedMetersPerSecond);
-    m_driveMotor.set(m_driveLimiter.calculate(0.6 * optimizedState.speedMetersPerSecond));
+    m_driveMotor.set(m_driveLimiter.calculate(optimizedState.speedMetersPerSecond));
 
     // Set the turn angle
     m_turnMotor.set(m_turnPIDController.calculate(getTurnAngle().getRadians(), optimizedState.angle.getRadians()));

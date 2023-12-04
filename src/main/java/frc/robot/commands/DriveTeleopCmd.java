@@ -25,9 +25,7 @@ public class DriveTeleopCmd extends CommandBase {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {
-    m_driveSubsystem.resetHeading();
-  }
+  public void initialize() {}
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
@@ -38,11 +36,15 @@ public class DriveTeleopCmd extends CommandBase {
     // double rotSpeed = MathUtil.applyDeadband(m_controller.getZ(), OperatorConstants.kDriverControllerDeadband);
 
     // Xbox Controller
-    double xSpeed = -MathUtil.applyDeadband(m_controller.getLeftY(), OperatorConstants.kDriverControllerDeadband);
-    double ySpeed = MathUtil.applyDeadband(m_controller.getLeftX(), OperatorConstants.kDriverControllerDeadband);
-    double rotSpeed = MathUtil.applyDeadband(m_controller.getRightX(), OperatorConstants.kDriverControllerDeadband);
+    double xSpeed = -MathUtil.applyDeadband(m_controller.getLeftY(), OperatorConstants.kDriverControllerDeadband) * 0.3;
+    double ySpeed = MathUtil.applyDeadband(m_controller.getLeftX(), OperatorConstants.kDriverControllerDeadband) * 0.3;
+    double rotSpeed = MathUtil.applyDeadband(m_controller.getRightX(), OperatorConstants.kDriverControllerDeadband) * 0.4;
 
-    m_driveSubsystem.drive(xSpeed, ySpeed, rotSpeed, false);
+    if (m_controller.rightBumper().getAsBoolean()) {
+      m_driveSubsystem.drive(xSpeed, ySpeed, rotSpeed, true);
+    } else {
+      m_driveSubsystem.drive(xSpeed, ySpeed, rotSpeed);
+    }
   }
 
   // Called once the command ends or is interrupted.

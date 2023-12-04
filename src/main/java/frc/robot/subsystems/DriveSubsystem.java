@@ -8,7 +8,9 @@ import org.littletonrobotics.junction.Logger;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -46,8 +48,7 @@ public class DriveSubsystem extends SubsystemBase {
   private final Field2d m_field = new Field2d();
 
   /** Creates a new DriveSubsystem. */
-  public DriveSubsystem() {
-  }
+  public DriveSubsystem() {}
 
   @Override
   public void periodic() {
@@ -58,8 +59,11 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearRightModule.logStuff();
 
     SmartDashboard.putNumber("Robot Angle", getHeading().getDegrees());
+    SmartDashboard.putNumber("Pose X", getPose().getX());
+    SmartDashboard.putNumber("Pose Y", getPose().getY());
+    SmartDashboard.putNumber("Pose Rotation", getPose().getRotation().getDegrees());
 
-    m_field.setRobotPose(m_odometry.getPoseMeters());
+    m_field.setRobotPose(getPose());
     SmartDashboard.putData(m_field);
 
     Logger.getInstance().recordOutput("Robot Angle", getHeading().getDegrees());
@@ -85,6 +89,31 @@ public class DriveSubsystem extends SubsystemBase {
     m_gyro.reset();
   }
 
+  public Pose2d getPose() {
+    // Get the odometry pose
+    return new Pose2d(
+      new Translation2d(m_odometry.getPoseMeters().getX(), -m_odometry.getPoseMeters().getY()),
+      m_odometry.getPoseMeters().getRotation()
+    );
+  }
+
+  public void resetPose() {
+    // Reset the odemetry pose
+    resetPose(new Pose2d());
+  }
+
+  public void resetPose(Pose2d pose) {
+    m_odometry.resetPosition(
+      new Rotation2d(0),
+      new SwerveModulePosition[] {
+        m_frontLeftModule.getPosition(),
+        m_frontRightModule.getPosition(),
+        m_rearLeftModule.getPosition(),
+        m_rearRightModule.getPosition(),
+      },
+      pose);
+  }
+
   public void drive(double xSpeed, double ySpeed, double rotSpeed) {
     drive(xSpeed, ySpeed, rotSpeed, false);
   }
@@ -95,7 +124,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     if (fieldRelative) {
       // If field-relative mode, convert to field-relative chassis speeds
-      speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
+      speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed, Rotation2d.fromRadians(-getHeading().getRadians()));
     }
 
     // Convert chassis speeds to swerve module states
