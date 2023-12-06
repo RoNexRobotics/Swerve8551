@@ -15,8 +15,8 @@ public class TrackTargetAutoCmd extends CommandBase {
 
     private final NetworkTableInstance m_inst = NetworkTableInstance.getDefault();
     private final NetworkTable m_limelightTable;
-    private final PIDController m_yawPIDController = new PIDController(0.01, 0, 0);
-    private final PIDController m_rangePIDController = new PIDController(0.05, 0, 0);
+    private final PIDController m_yawPIDController = new PIDController(0.02, 0, 0);
+    private final PIDController m_rangePIDController = new PIDController(0.2, 0, 0);
 
   /** Creates a new TrackTargetAutoCmd. */
   public TrackTargetAutoCmd(DriveSubsystem driveSubsystem) {
@@ -39,11 +39,15 @@ public class TrackTargetAutoCmd extends CommandBase {
     double targetArea = m_limelightTable.getEntry("ta").getDouble(0);
 
     if (targetArea == 0) {
-      targetArea = 6;
+      targetArea = 2;
+    }
+
+    if (Math.abs(targetX) < 1) {
+      targetX = 0;
     }
 
     m_driveSubsystem.drive(
-      m_rangePIDController.calculate(targetArea, 6),
+      m_rangePIDController.calculate(targetArea, 2),
       0,
       -m_yawPIDController.calculate(targetX, 0)
     );

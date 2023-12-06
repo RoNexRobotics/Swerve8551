@@ -13,20 +13,20 @@ import frc.robot.subsystems.DriveSubsystem;
 
 public class GoToPoseCmd extends CommandBase {
   private final DriveSubsystem m_driveSubsystem;
-  private final PIDController m_xPIDController = new PIDController(2, 0, 0.1);
-  private final PIDController m_yPIDController = new PIDController(2, 0, 0.1);
-  private final PIDController m_rotPIDController = new PIDController(2, 0, 0.1);
+  private final PIDController m_xPIDController = new PIDController(0.2, 0, 0.1);
+  private final PIDController m_yPIDController = new PIDController(0.2, 0, 0.1);
+  private final PIDController m_rotPIDController = new PIDController(0.2, 0, 0.1);
 
   private final Pose2d m_targetPose = new Pose2d(
     new Translation2d(1, 0),
-    Rotation2d.fromDegrees(45)
+    Rotation2d.fromDegrees(0)
   );
 
   /** Creates a new GoToPoseCmd. */
   public GoToPoseCmd(DriveSubsystem driveSubsystem) {
     m_driveSubsystem = driveSubsystem;
 
-    m_rotPIDController.enableContinuousInput(-Math.PI, Math.PI);
+    // m_rotPIDController.enableContinuousInput(-Math.PI, Math.PI);
 
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(m_driveSubsystem);
@@ -44,8 +44,9 @@ public class GoToPoseCmd extends CommandBase {
       m_driveSubsystem.drive(
         m_xPIDController.calculate(pose.getX(), m_targetPose.getX()),
         -m_yPIDController.calculate(pose.getY(), m_targetPose.getY()),
-        -m_rotPIDController.calculate(pose.getRotation().getRadians(), m_targetPose.getRotation().getRadians()),
-        true
+        // -m_rotPIDController.calculate(pose.getRotation().getRadians(), m_targetPose.getRotation().getRadians()),
+        0
+        // true
       );
   }
 
