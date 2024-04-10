@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -20,6 +21,13 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     configureBindings();
+
+    Command driveFieldOrientedDirectAngleSim = m_swerveSubsystem.simDriveCommand(
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriverControllerDeadband),
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriverControllerDeadband),
+        () -> -m_driverController.getRightX());
+
+    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngleSim);
   }
   
   private void configureBindings() {}
