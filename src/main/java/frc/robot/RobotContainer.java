@@ -4,7 +4,13 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -18,21 +24,31 @@ public class RobotContainer {
   // Controllers
   CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
 
+  private final SendableChooser<Command> autoChooser;
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     configureBindings();
 
-    Command driveFieldOrientedDirectAngleSim = m_swerveSubsystem.simDriveCommand(
-        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriverControllerDeadband),
-        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriverControllerDeadband),
-        () -> -m_driverController.getRightX());
+    autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("Auto Chooser", autoChooser);
 
-    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngleSim);
+    Command driveFieldOrientedAnglularVelocity = m_swerveSubsystem.driveCommand(
+      () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriverControllerDeadband),
+      () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriverControllerDeadband),
+      () -> -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriverControllerDeadband)
+    );
+
+    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAnglularVelocity);
   }
   
-  private void configureBindings() {}
+  private void configureBindings() {
+    m_driverController.x().whileTrue(m_swerveSubsystem.driveToPose(new Pose2d(1.41, 5.53, Rotation2d.fromDegrees(180))));
+    m_driverController.b().whileTrue(m_swerveSubsystem.driveToPose(new Pose2d(14.96, 1.22, Rotation2d.fromDegrees(-60.26))));
+    m_driverController.y().whileTrue(Commands.run(m_swerveSubsystem::addFakeVisionReading));
+  }
 
   public Command getAutonomousCommand() {
-    return Commands.none();
+    return autoChooser.getSelected();
   }
 }

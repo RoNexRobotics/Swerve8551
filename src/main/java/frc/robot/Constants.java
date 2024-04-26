@@ -6,9 +6,10 @@ package frc.robot;
 
 import java.io.File;
 
+import com.pathplanner.lib.util.PIDConstants;
+
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -27,9 +28,9 @@ public final class Constants {
     public static final int kOperatorControllerPort = 1;
   }
 
-  public static final class HardwareConstants {
-    public static final int kPowerDistributionId = 0;
-    public static final ModuleType kPowerDistributionModuleType = ModuleType.kCTRE;
+  public static final class AutoConstants {
+    public static final PIDConstants kTranslationPID = new PIDConstants(0.7, 0, 0);
+    public static final PIDConstants kAnglePID = new PIDConstants(0.4, 0, 0.01);
   }
 
   public static final class SwerveConstants {
