@@ -54,57 +54,61 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {}
+  public void periodic() {
+  }
 
   private void setupPathPlanner() {
     AutoBuilder.configureHolonomic(
-      m_swerve::getPose, // Robot pose supplier
-      m_swerve::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
-      m_swerve::getRobotVelocity, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-      m_swerve::setChassisSpeeds, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
-      new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-        AutoConstants.kTranslationPID, // Translation PID constants
-        AutoConstants.kAnglePID, // Rotation PID constants
-        SwerveConstants.kMaxSpeed, // Max module speed, in m/s
-        m_swerve.swerveDriveConfiguration.getDriveBaseRadiusMeters(), // Drive base radius in meters. Distance from robot center to furthest module.
-        new ReplanningConfig() // Default path replanning config. See the API for the options here
-      ),
-      () -> {
-        // Boolean supplier that controls when the path will be mirrored for the red alliance
-        // This will flip the path being followed to the red side of the field.
-        // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-        var alliance = DriverStation.getAlliance();
-        return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
-      },
-      this // Reference to this subsystem to set requirements
+        m_swerve::getPose, // Robot pose supplier
+        m_swerve::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
+        m_swerve::getRobotVelocity, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+        m_swerve::setChassisSpeeds, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+        new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+            AutoConstants.kTranslationPID, // Translation PID constants
+            AutoConstants.kAnglePID, // Rotation PID constants
+            SwerveConstants.kMaxSpeed, // Max module speed, in m/s
+            m_swerve.swerveDriveConfiguration.getDriveBaseRadiusMeters(), // Drive base radius in meters. Distance from
+                                                                          // robot center to furthest module.
+            new ReplanningConfig() // Default path replanning config. See the API for the options here
+        ),
+        () -> {
+          // Boolean supplier that controls when the path will be mirrored for the red
+          // alliance
+          // This will flip the path being followed to the red side of the field.
+          // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+          var alliance = DriverStation.getAlliance();
+          return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
+        },
+        this // Reference to this subsystem to set requirements
     );
   }
 
   public Command driveToPose(Pose2d pose) {
     // Create the constraints to use while pathfinding
     PathConstraints constraints = new PathConstraints(
-      m_swerve.getMaximumVelocity(), 4.0,
-      m_swerve.getMaximumAngularVelocity(), Units.degreesToRadians(720));
+        m_swerve.getMaximumVelocity(), 4.0,
+        m_swerve.getMaximumAngularVelocity(), Units.degreesToRadians(720));
 
     // Since AutoBuilder is configured, we can use it to build pathfinding commands
     return AutoBuilder.pathfindToPose(
-      pose,
-      constraints,
-      0.0, // Goal end velocity in meters/sec
-      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+        pose,
+        constraints,
+        0.0, // Goal end velocity in meters/sec
+        0.0 // Rotation delay distance in meters. This is how far the robot should travel
+            // before attempting to rotate.
     );
   }
 
-  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX) {
+  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY,
+      DoubleSupplier angularRotationX) {
     return run(() -> {
       // Make the robot move
       m_swerve.drive(
-        new Translation2d(
-          Math.pow(translationX.getAsDouble(), 3) * m_swerve.getMaximumVelocity(),
-          Math.pow(translationY.getAsDouble(), 3) * m_swerve.getMaximumVelocity()
-        ),
-        Math.pow(angularRotationX.getAsDouble(), 3) * m_swerve.getMaximumAngularVelocity(),
-        true, false);
+          new Translation2d(
+              Math.pow(translationX.getAsDouble(), 3) * m_swerve.getMaximumVelocity(),
+              Math.pow(translationY.getAsDouble(), 3) * m_swerve.getMaximumVelocity()),
+          Math.pow(angularRotationX.getAsDouble(), 3) * m_swerve.getMaximumAngularVelocity(),
+          true, false);
     });
   }
 

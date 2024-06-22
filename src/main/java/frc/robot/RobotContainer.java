@@ -26,7 +26,9 @@ public class RobotContainer {
 
   private final SendableChooser<Command> autoChooser;
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  /**
+   * The container for the robot. Contains subsystems, OI devices, and commands.
+   */
   public RobotContainer() {
     configureBindings();
 
@@ -34,17 +36,18 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Chooser", autoChooser);
 
     Command driveFieldOrientedAnglularVelocity = m_swerveSubsystem.driveCommand(
-      () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriverControllerDeadband),
-      () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriverControllerDeadband),
-      () -> -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriverControllerDeadband)
-    );
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriverControllerDeadband),
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriverControllerDeadband),
+        () -> -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriverControllerDeadband));
 
     m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAnglularVelocity);
   }
-  
+
   private void configureBindings() {
-    m_driverController.x().whileTrue(m_swerveSubsystem.driveToPose(new Pose2d(1.41, 5.53, Rotation2d.fromDegrees(180))));
-    m_driverController.b().whileTrue(m_swerveSubsystem.driveToPose(new Pose2d(14.96, 1.22, Rotation2d.fromDegrees(-60.26))));
+    m_driverController.x()
+        .whileTrue(m_swerveSubsystem.driveToPose(new Pose2d(1.41, 5.53, Rotation2d.fromDegrees(180))));
+    m_driverController.b()
+        .whileTrue(m_swerveSubsystem.driveToPose(new Pose2d(14.96, 1.22, Rotation2d.fromDegrees(-60.26))));
     m_driverController.y().whileTrue(Commands.run(m_swerveSubsystem::addFakeVisionReading));
   }
 
