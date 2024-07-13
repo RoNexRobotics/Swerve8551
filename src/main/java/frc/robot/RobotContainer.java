@@ -5,6 +5,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -13,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
@@ -24,16 +26,15 @@ public class RobotContainer {
   // Controllers
   CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
 
+  // Other stuff
   private final SendableChooser<Command> autoChooser;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+    registerNamedCommands();
     configureBindings();
-
-    autoChooser = AutoBuilder.buildAutoChooser();
-    SmartDashboard.putData("Auto Chooser", autoChooser);
 
     Command driveFieldOrientedAnglularVelocity = m_swerveSubsystem.driveCommand(
         () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriverControllerDeadband),
@@ -41,6 +42,14 @@ public class RobotContainer {
         () -> -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriverControllerDeadband));
 
     m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+
+    // Setup auto chooser
+    autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("Auto Chooser", autoChooser);
+  }
+
+  private void registerNamedCommands() {
+    NamedCommands.registerCommand("SayHi", new InstantCommand(() -> System.out.println("Hiii!!")));
   }
 
   private void configureBindings() {
