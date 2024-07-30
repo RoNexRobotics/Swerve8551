@@ -102,13 +102,19 @@ public class SwerveSubsystem extends SubsystemBase {
   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY,
       DoubleSupplier angularRotationX) {
     return run(() -> {
-      // Make the robot move
-      m_swerve.drive(
-          new Translation2d(
-              Math.pow(translationX.getAsDouble(), 3) * m_swerve.getMaximumVelocity(),
-              Math.pow(translationY.getAsDouble(), 3) * m_swerve.getMaximumVelocity()),
-          Math.pow(angularRotationX.getAsDouble(), 3) * m_swerve.getMaximumAngularVelocity(),
-          true, false);
+
+      if (translationX.getAsDouble() == 0 && translationY.getAsDouble() == 0 && angularRotationX.getAsDouble() == 0) {
+        // Lock the robot's pose
+        m_swerve.lockPose();
+      } else {
+        // Make the robot move
+        m_swerve.drive(
+            SwerveMath.scaleTranslation(new Translation2d(
+                translationX.getAsDouble() * m_swerve.getMaximumVelocity(),
+                translationY.getAsDouble() * m_swerve.getMaximumVelocity()), 0.8),
+            Math.pow(angularRotationX.getAsDouble(), 3) * m_swerve.getMaximumAngularVelocity(),
+            true, false);
+      }
     });
   }
 
