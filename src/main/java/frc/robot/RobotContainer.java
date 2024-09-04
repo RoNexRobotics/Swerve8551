@@ -4,61 +4,62 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.DriveTeleopCmd;
-import frc.robot.commands.GoToPoseCmd;
-import frc.robot.commands.TrackTargetAutoCmd;
-import frc.robot.subsystems.DriveSubsystem;
+import com.pathplanner.lib.auto.AutoBuilder;
 
-/**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
- * subsystems, commands, and trigger mappings) should be declared here.
- */
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Constants.OIConstants;
+import frc.robot.subsystems.swervedrive.SwerveSubsystem;
+
 public class RobotContainer {
   // Subsystems
-  DriveSubsystem m_driveSubsystem = new DriveSubsystem();
+  SwerveSubsystem m_swerveSubsystem = new SwerveSubsystem();
 
   // Controllers
-  CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
 
-  // Commands
-  DriveTeleopCmd m_driveTeleopCmd = new DriveTeleopCmd(m_driveSubsystem, m_driverController);
-  TrackTargetAutoCmd m_trackTargetAutoCmd = new TrackTargetAutoCmd(m_driveSubsystem);
-  GoToPoseCmd m_goToPoseCmd = new GoToPoseCmd(m_driveSubsystem);
+  // Other stuff
+  private final SendableChooser<Command> autoChooser;
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  /**
+   * The container for the robot. Contains subsystems, OI devices, and commands.
+   */
   public RobotContainer() {
-    m_driveSubsystem.setDefaultCommand(m_driveTeleopCmd);
-
+    registerNamedCommands();
     configureBindings();
+
+    Command driveFieldOrientedAnglularVelocity = m_swerveSubsystem.driveCommand(
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriverControllerDeadband),
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriverControllerDeadband),
+        () -> -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriverControllerDeadband));
+
+    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+
+    // Setup auto chooser
+    autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("Auto Chooser", autoChooser);
   }
 
-  /**
-   * Use this method to define your trigger->command mappings. Triggers can be created via the
-   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
-   * predicate, or via the named factories in {@link
-   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
-   * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-   * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
-   * joysticks}.
-   */
+  private void registerNamedCommands() {
+    // NamedCommands.registerCommand("SayHi", new InstantCommand(() ->
+    // System.out.println("Hiii!!")));
+  }
+
   private void configureBindings() {
-    m_driverController.rightBumper().onTrue(new InstantCommand(m_driveSubsystem::resetHeading, m_driveSubsystem));
-
-    m_driverController.y().onTrue(new InstantCommand(m_driveSubsystem::resetPose, m_driveSubsystem));
+    m_driverController.x()
+        .whileTrue(m_swerveSubsystem.driveToPose(new Pose2d(1.41, 5.53, Rotation2d.fromDegrees(180))));
+    m_driverController.b()
+        .whileTrue(m_swerveSubsystem.driveToPose(new Pose2d(14.96, 1.22, Rotation2d.fromDegrees(-60.26))));
+    m_driverController.y().whileTrue(Commands.run(m_swerveSubsystem::addFakeVisionReading));
   }
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
   public Command getAutonomousCommand() {
-    return m_trackTargetAutoCmd;
+    return autoChooser.getSelected();
   }
 }
