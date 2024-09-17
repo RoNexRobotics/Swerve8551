@@ -6,22 +6,35 @@ package frc.robot.subsystems.swervedrive;
 
 import java.util.function.DoubleSupplier;
 
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
+import frc.robot.LimelightHelpers.PoseEstimate;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
 import swervelib.parser.SwerveParser;
@@ -31,6 +44,14 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 public class SwerveSubsystem extends SubsystemBase {
 
   private final SwerveDrive m_swerve;
+
+  private AprilTagFieldLayout m_aprilTagFieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
+  private PhotonCamera m_photonCam = new PhotonCamera("IPEVO_Point_2_View");
+  private Transform3d m_robotToCam = new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
+  private PhotonPoseEstimator m_photonPoseEstimator = new PhotonPoseEstimator(m_aprilTagFieldLayout,
+      PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, m_photonCam, m_robotToCam);
+
+  private boolean m_fieldRelative = true;
 
   /** Creates a new SwerveSubsystem. */
   public SwerveSubsystem() {
@@ -49,12 +70,30 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     m_swerve.setCosineCompensator(!RobotBase.isSimulation());
+    m_swerve.setHeadingCorrection(true);
 
     setupPathPlanner();
   }
 
   @Override
   public void periodic() {
+
+    SmartDashboard.putBoolean("Field Relative", m_fieldRelative);
+
+    PoseEstimate limelightPoseEstimate = Vision.getLimelightMegaTag2Pose("limelight", m_swerve.getPose(),
+        m_swerve.getGyro().getRate());
+    if (limelightPoseEstimate != null) {
+      m_swerve.addVisionMeasurement(limelightPoseEstimate.pose, limelightPoseEstimate.timestampSeconds,
+          VecBuilder.fill(0.7, 0.7, 0.7));
+    }
+
+    EstimatedRobotPose photonPoseEstimate = Vision.getPhotonMultiTagPose(m_photonCam, m_photonPoseEstimator);
+    if (photonPoseEstimate != null) {
+      m_swerve.addVisionMeasurement(photonPoseEstimate.estimatedPose.toPose2d(), photonPoseEstimate.timestampSeconds,
+          VecBuilder.fill(0.7, 0.7, 0.7));
+    }
+
+    // Vision.updateAprilTags(m_swerve.field, m_photonCam);
   }
 
   private void setupPathPlanner() {
@@ -66,10 +105,20 @@ public class SwerveSubsystem extends SubsystemBase {
         new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
             AutoConstants.kTranslationPID, // Translation PID constants
             AutoConstants.kAnglePID, // Rotation PID constants
-            SwerveConstants.kMaxSpeed, // Max module speed, in m/s
-            m_swerve.swerveDriveConfiguration.getDriveBaseRadiusMeters(), // Drive base radius in meters. Distance from
-                                                                          // robot center to furthest module.
-            new ReplanningConfig() // Default path replanning config. See the API for the options here
+            m_swerve.getMaximumVelocity(), // Max module speed, in m/s
+            m_swerve.swerveDriveConfiguration.getDriveBaseRadiusMeters(), // Drive
+                                                                          // base
+                                                                          // radius
+                                                                          // in
+                                                                          // meters.
+                                                                          // Distance
+                                                                          // from
+            // robot center to furthest module.
+            new ReplanningConfig(
+                true,
+                true,
+                0.5,
+                0.5) // Default path replanning config. See the API for the options here
         ),
         () -> {
           // Boolean supplier that controls when the path will be mirrored for the red
@@ -83,10 +132,37 @@ public class SwerveSubsystem extends SubsystemBase {
     );
   }
 
+  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY,
+      DoubleSupplier angularRotationX) {
+    return run(() -> drive(translationX, translationY, angularRotationX));
+  }
+
+  public void drive(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX) {
+    m_swerve.setHeadingCorrection(true);
+
+    if (translationX.getAsDouble() == 0 && translationY.getAsDouble() == 0 && angularRotationX.getAsDouble() == 0) {
+      // Lock the robot's pose
+      m_swerve.lockPose();
+    } else {
+      // Make the robot move
+      m_swerve.drive(
+          new Translation2d(
+              Math.copySign(Math.pow(translationX.getAsDouble(), 2), translationX.getAsDouble())
+                  * (m_swerve.getMaximumVelocity() * SwerveConstants.kSpeedPercentage),
+              Math.copySign(Math.pow(translationY.getAsDouble(), 2), translationY.getAsDouble())
+                  * (m_swerve.getMaximumVelocity() * SwerveConstants.kSpeedPercentage)),
+          Math.copySign(Math.pow(angularRotationX.getAsDouble(), 2), angularRotationX.getAsDouble())
+              * (m_swerve.getMaximumAngularVelocity() * SwerveConstants.kSpeedPercentage),
+          m_fieldRelative, false);
+    }
+  }
+
   public Command driveToPose(Pose2d pose) {
+    m_swerve.setHeadingCorrection(false);
+
     // Create the constraints to use while pathfinding
     PathConstraints constraints = new PathConstraints(
-        m_swerve.getMaximumVelocity(), 4.0,
+        m_swerve.getMaximumVelocity() * SwerveConstants.kDriveToPoseSpeedPercentage, 4.0,
         m_swerve.getMaximumAngularVelocity(), Units.degreesToRadians(720));
 
     // Since AutoBuilder is configured, we can use it to build pathfinding commands
@@ -99,26 +175,15 @@ public class SwerveSubsystem extends SubsystemBase {
     );
   }
 
-  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY,
-      DoubleSupplier angularRotationX) {
-    return run(() -> {
-
-      if (translationX.getAsDouble() == 0 && translationY.getAsDouble() == 0 && angularRotationX.getAsDouble() == 0) {
-        // Lock the robot's pose
-        m_swerve.lockPose();
-      } else {
-        // Make the robot move
-        m_swerve.drive(
-            SwerveMath.scaleTranslation(new Translation2d(
-                translationX.getAsDouble() * m_swerve.getMaximumVelocity(),
-                translationY.getAsDouble() * m_swerve.getMaximumVelocity()), 0.8),
-            Math.pow(angularRotationX.getAsDouble(), 3) * m_swerve.getMaximumAngularVelocity(),
-            true, false);
-      }
-    });
-  }
-
   public void addFakeVisionReading() {
     m_swerve.addVisionMeasurement(new Pose2d(3, 3, Rotation2d.fromDegrees(65)), Timer.getFPGATimestamp());
+  }
+
+  public void resetOdometry() {
+    m_swerve.resetOdometry(new Pose2d(8.28, 4.11, Rotation2d.fromDegrees(0)));
+  }
+
+  public void toggleFieldRelative() {
+    m_fieldRelative = !m_fieldRelative;
   }
 }

@@ -32,12 +32,15 @@ public final class Constants {
 
   public static final class AutoConstants {
     public static final PIDConstants kTranslationPID = new PIDConstants(0.7, 0, 0);
-    public static final PIDConstants kAnglePID = new PIDConstants(0.4, 0, 0.01);
+    public static final PIDConstants kAnglePID = new PIDConstants(0.5, 0, 0);
   }
 
   public static final class SwerveConstants {
     public static final File kConfigDirectory = new File(Filesystem.getDeployDirectory(), "swerve");
 
-    public static final double kMaxSpeed = Units.feetToMeters(14.5);
+    public static final double kMaxSpeed = Units.feetToMeters(18);
+    public static final double kSpeedPercentage = 0.1;
+    public static final double kDriveToPoseSpeedPercentage = 0.1;
+    public static final boolean kMegaTag2Enabled = true;
   }
 }
