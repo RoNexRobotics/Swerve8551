@@ -18,6 +18,9 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
+import frc.robot.util.Elastic;
+import frc.robot.util.Elastic.ElasticNotification;
+import frc.robot.util.Elastic.ElasticNotification.NotificationLevel;
 
 public class RobotContainer {
   // Subsystems
@@ -35,6 +38,8 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+    Elastic.sendAlert(new ElasticNotification(NotificationLevel.INFO, "Woohoo", "The robot program has started up!"));
+
     registerNamedCommands();
     configureBindings();
 
