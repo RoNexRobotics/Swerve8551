@@ -158,7 +158,7 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public Command driveToPose(Pose2d pose) {
-    m_swerve.setHeadingCorrection(false);
+    // m_swerve.setHeadingCorrection(false);
 
     // Create the constraints to use while pathfinding
     PathConstraints constraints = new PathConstraints(
