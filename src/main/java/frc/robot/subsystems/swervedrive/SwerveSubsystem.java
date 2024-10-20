@@ -6,25 +6,15 @@ package frc.robot.subsystems.swervedrive;
 
 import java.util.function.DoubleSupplier;
 
-import org.photonvision.EstimatedRobotPose;
-import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.PhotonPoseEstimator.PoseStrategy;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.ReplanningConfig;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -34,7 +24,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.util.LimelightHelpers.PoseEstimate;
+import frc.robot.util.LimelightHelpers;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
 import swervelib.parser.SwerveParser;
@@ -44,12 +34,6 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 public class SwerveSubsystem extends SubsystemBase {
 
   private final SwerveDrive m_swerve;
-
-  private AprilTagFieldLayout m_aprilTagFieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
-  private PhotonCamera m_photonCam = new PhotonCamera("IPEVO_Point_2_View");
-  private Transform3d m_robotToCam = new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
-  private PhotonPoseEstimator m_photonPoseEstimator = new PhotonPoseEstimator(m_aprilTagFieldLayout,
-      PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, m_photonCam, m_robotToCam);
 
   private boolean m_fieldRelative = true;
 
@@ -80,20 +64,15 @@ public class SwerveSubsystem extends SubsystemBase {
 
     SmartDashboard.putBoolean("Field Relative", m_fieldRelative);
 
-    PoseEstimate limelightPoseEstimate = Vision.getLimelightMegaTag2Pose("limelight", m_swerve.getPose(),
-        m_swerve.getGyro().getRate());
-    if (limelightPoseEstimate != null) {
-      m_swerve.addVisionMeasurement(limelightPoseEstimate.pose, limelightPoseEstimate.timestampSeconds,
-          VecBuilder.fill(0.7, 0.7, 0.7));
+    if (SwerveConstants.kMegaTag2Enabled) {
+      // Limelight 3G
+      LimelightHelpers.SetRobotOrientation("limelight3g", m_swerve.getYaw().getDegrees(), 0, 0, 0, 0, 0);
+      LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight3g");
+      if (Math.abs(m_swerve.getGyro().getRate()) <= 720 && mt2.tagCount != 0) {
+        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 9999999));
+        m_swerve.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
+      }
     }
-
-    EstimatedRobotPose photonPoseEstimate = Vision.getPhotonMultiTagPose(m_photonCam, m_photonPoseEstimator);
-    if (photonPoseEstimate != null) {
-      m_swerve.addVisionMeasurement(photonPoseEstimate.estimatedPose.toPose2d(), photonPoseEstimate.timestampSeconds,
-          VecBuilder.fill(0.7, 0.7, 0.7));
-    }
-
-    // Vision.updateAprilTags(m_swerve.field, m_photonCam);
   }
 
   private void setupPathPlanner() {
