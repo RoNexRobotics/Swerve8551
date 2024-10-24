@@ -66,8 +66,8 @@ public class SwerveSubsystem extends SubsystemBase {
 
     if (SwerveConstants.kMegaTag2Enabled) {
       // Limelight 3G
-      LimelightHelpers.SetRobotOrientation("limelight3g", m_swerve.getYaw().getDegrees(), 0, 0, 0, 0, 0);
-      LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight3g");
+      LimelightHelpers.SetRobotOrientation("limelight-better", m_swerve.getYaw().getDegrees(), 0, 0, 0, 0, 0);
+      LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-better");
       if (Math.abs(m_swerve.getGyro().getRate()) <= 720 && mt2.tagCount != 0) {
         m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 9999999));
         m_swerve.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
