@@ -4,88 +4,60 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
-
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.Autos;
+import frc.robot.commands.ExampleCommand;
+import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.Constants.OIConstants;
-import frc.robot.subsystems.swervedrive.SwerveSubsystem;
-import frc.robot.util.Elastic;
-import frc.robot.util.Elastic.ElasticNotification;
-import frc.robot.util.Elastic.ElasticNotification.NotificationLevel;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
+/**
+ * This class is where the bulk of the robot should be declared. Since Command-based is a
+ * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
+ * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
+ * subsystems, commands, and trigger mappings) should be declared here.
+ */
 public class RobotContainer {
-  // Subsystems
-  SwerveSubsystem m_swerveSubsystem = new SwerveSubsystem();
+  // The robot's subsystems and commands are defined here...
+  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
 
-  // Controllers
-  // CommandJoystick m_driverJoystick = new
-  // CommandJoystick(OIConstants.kDriverControllerPort);
-  CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
+  // Replace with CommandPS4Controller or CommandJoystick if needed
+  private final CommandXboxController m_driverController =
+      new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
-  // Other stuff
-  private final SendableChooser<Command> autoChooser;
+  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  public RobotContainer() {
+    // Configure the trigger bindings
+    configureBindings();
+  }
 
   /**
-   * The container for the robot. Contains subsystems, OI devices, and commands.
+   * Use this method to define your trigger->command mappings. Triggers can be created via the
+   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
+   * predicate, or via the named factories in {@link
+   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
+   * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
+   * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
+   * joysticks}.
    */
-  public RobotContainer() {
-    Elastic.sendAlert(new ElasticNotification(NotificationLevel.INFO, "Woohoo", "The robot program has started up!"));
-
-    registerNamedCommands();
-    configureBindings();
-
-    // Command driveFieldOrientedAnglularVelocity = m_swerveSubsystem.driveCommand(
-    // () -> -MathUtil.applyDeadband(m_driverJoystick.getY(),
-    // OIConstants.kDriverControllerDeadband),
-    // () -> -MathUtil.applyDeadband(m_driverJoystick.getX(),
-    // OIConstants.kDriverControllerDeadband),
-    // () -> -MathUtil.applyDeadband(m_driverJoystick.getZ(),
-    // OIConstants.kDriverControllerDeadband));
-
-    Command driveFieldOrientedAnglularVelocity = m_swerveSubsystem.driveCommand(
-        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriverControllerDeadband),
-        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriverControllerDeadband),
-        () -> -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriverControllerDeadband));
-
-    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-
-    // Setup auto chooser
-    autoChooser = AutoBuilder.buildAutoChooser();
-    SmartDashboard.putData("Auto Chooser", autoChooser);
-  }
-
-  private void registerNamedCommands() {
-    NamedCommands.registerCommand("AimAndShoot", Commands.none());
-    NamedCommands.registerCommand("Intake", Commands.none());
-  }
-
   private void configureBindings() {
-    // m_driverJoystick.button(2)
-    // .whileTrue(m_swerveSubsystem.driveToPose(new Pose2d(1.82, 7.58,
-    // Rotation2d.fromDegrees(90))));
-    // m_driverJoystick.button(3)
-    // .whileTrue(m_swerveSubsystem.driveToPose(new Pose2d(15.40, 1,
-    // Rotation2d.fromDegrees(-59.15))));
-    // m_driverJoystick.button(4).whileTrue(Commands.run(m_swerveSubsystem::addFakeVisionReading));
+    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
+    new Trigger(m_exampleSubsystem::exampleCondition)
+        .onTrue(new ExampleCommand(m_exampleSubsystem));
 
-    m_driverController.rightBumper().onTrue(new InstantCommand(m_swerveSubsystem::resetOdometry, m_swerveSubsystem));
-
-    m_driverController.x().whileTrue(m_swerveSubsystem.driveToPose(new Pose2d(8.28, 4.11, Rotation2d.fromDegrees(0))));
-
-    m_driverController.leftBumper()
-        .onTrue(new InstantCommand(m_swerveSubsystem::toggleFieldRelative, m_swerveSubsystem));
+    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
+    // cancelling on release.
+    m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
   }
 
+  /**
+   * Use this to pass the autonomous command to the main {@link Robot} class.
+   *
+   * @return the command to run in autonomous
+   */
   public Command getAutonomousCommand() {
-    return autoChooser.getSelected();
+    // An example command will be run in autonomous
+    return Autos.exampleAuto(m_exampleSubsystem);
   }
 }

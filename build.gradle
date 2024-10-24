@@ -31,7 +31,6 @@ deploy {
 
                 // Static files artifact
                 frcStaticFileDeploy(getArtifactTypeClass('FileTreeArtifact')) {
-                    predeploy << { execute 'rm -rf /home/lvuser/deploy' } // Clean out the deploy directory to remove old pathplanner files
                     files = project.fileTree('src/main/deploy')
                     directory = '/home/lvuser/deploy'
                 }
