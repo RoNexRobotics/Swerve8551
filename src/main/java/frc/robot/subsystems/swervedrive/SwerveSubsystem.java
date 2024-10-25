@@ -94,11 +94,7 @@ public class SwerveSubsystem extends SubsystemBase {
                                                                           // Distance
                                                                           // from
             // robot center to furthest module.
-            new ReplanningConfig(
-                true,
-                true,
-                0.5,
-                0.5) // Default path replanning config. See the API for the options here
+            new ReplanningConfig() // Default path replanning config. See the API for the options here
         ),
         () -> {
           // Boolean supplier that controls when the path will be mirrored for the red

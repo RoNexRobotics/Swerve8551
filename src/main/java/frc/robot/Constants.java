@@ -31,8 +31,8 @@ public final class Constants {
   }
 
   public static final class AutoConstants {
-    public static final PIDConstants kTranslationPID = new PIDConstants(0.7, 0, 0);
-    public static final PIDConstants kAnglePID = new PIDConstants(0.5, 0, 0);
+    public static final PIDConstants kTranslationPID = new PIDConstants(1, 0, 0);
+    public static final PIDConstants kAnglePID = new PIDConstants(0.9, 0, 0);
   }
 
   public static final class SwerveConstants {
