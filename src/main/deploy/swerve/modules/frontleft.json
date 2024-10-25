@@ -9,30 +9,19 @@
     "id": 1,
     "canbus": null
   },
+  "inverted": {
+    "drive": true,
+    "angle": true
+  },
   "angle": {
     "type": "sparkmax",
     "id": 2,
     "canbus": null
   },
-  "conversionFactors": {
-    "angle": {
-      "gearRatio": 11.3142,
-      "factor": null
-    },
-    "drive": {
-      "diameter": 4,
-      "gearRatio": 4.59,
-      "factor": null
-    }
-  },
   "encoder": {
     "type": "cancoder",
     "id": 9,
     "canbus": null
-  },
-  "inverted": {
-    "drive": true,
-    "angle": true
   },
   "absoluteEncoderInverted": false
 }
