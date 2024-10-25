@@ -54,7 +54,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     m_swerve.setCosineCompensator(!RobotBase.isSimulation());
-    m_swerve.setHeadingCorrection(true);
+    m_swerve.setHeadingCorrection(false);
 
     setupPathPlanner();
   }
@@ -117,7 +117,6 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void drive(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX) {
-    m_swerve.setHeadingCorrection(true);
 
     if (translationX.getAsDouble() == 0 && translationY.getAsDouble() == 0 && angularRotationX.getAsDouble() == 0) {
       // Lock the robot's pose
@@ -137,7 +136,6 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public Command driveToPose(Pose2d pose) {
-    // m_swerve.setHeadingCorrection(false);
 
     // Create the constraints to use while pathfinding
     PathConstraints constraints = new PathConstraints(
