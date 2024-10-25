@@ -54,6 +54,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     m_swerve.setCosineCompensator(!RobotBase.isSimulation());
+    m_swerve.setModuleEncoderAutoSynchronize(true, 0);
     m_swerve.setHeadingCorrection(true);
 
     setupPathPlanner();
