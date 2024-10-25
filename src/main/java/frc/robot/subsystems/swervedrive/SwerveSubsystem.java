@@ -39,12 +39,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   /** Creates a new SwerveSubsystem. */
   public SwerveSubsystem() {
-    double angleConversionFactor = SwerveMath.calculateDegreesPerSteeringRotation(11.3142);
-    double driveConversionFactor = SwerveMath.calculateMetersPerRotation(Units.inchesToMeters(4), 4.59);
-    System.out.println("--- Conversion Factors ---");
-    System.out.println("Angle: " + angleConversionFactor);
-    System.out.println("Drive: " + driveConversionFactor);
-
+    
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
 
     try {
