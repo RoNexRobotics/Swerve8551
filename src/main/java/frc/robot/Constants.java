@@ -39,7 +39,7 @@ public final class Constants {
     public static final File kConfigDirectory = new File(Filesystem.getDeployDirectory(), "swerve");
 
     public static final double kMaxSpeed = Units.feetToMeters(18);
-    public static final double kSpeedPercentage = 0.8;
+    public static final double kSpeedPercentage = 0.3;
     public static final double kDriveToPoseSpeedPercentage = 0.1;
     public static final boolean kMegaTag2Enabled = true;
   }
