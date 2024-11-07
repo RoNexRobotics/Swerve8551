@@ -26,7 +26,6 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.util.LimelightHelpers;
 import swervelib.SwerveDrive;
-import swervelib.math.SwerveMath;
 import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
@@ -50,7 +49,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     m_swerve.setCosineCompensator(!RobotBase.isSimulation());
     m_swerve.setModuleEncoderAutoSynchronize(true, 0);
-    m_swerve.setHeadingCorrection(true);
+    m_swerve.setHeadingCorrection(false);
 
     setupPathPlanner();
   }
@@ -121,7 +120,8 @@ public class SwerveSubsystem extends SubsystemBase {
                   * (m_swerve.getMaximumVelocity() * SwerveConstants.kSpeedPercentage),
               Math.copySign(Math.pow(translationY.getAsDouble(), 2), translationY.getAsDouble())
                   * (m_swerve.getMaximumVelocity() * SwerveConstants.kSpeedPercentage)),
-          Math.copySign(Math.pow(angularRotationX.getAsDouble(), 2), angularRotationX.getAsDouble())
+          // Math.copySign(Math.pow(angularRotationX.getAsDouble(), 3), angularRotationX.getAsDouble()),
+          angularRotationX.getAsDouble()
               * (m_swerve.getMaximumAngularVelocity() * SwerveConstants.kSpeedPercentage),
           m_fieldRelative, false);
     }

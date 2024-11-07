@@ -26,7 +26,9 @@ import edu.wpi.first.wpilibj.Filesystem;
 public final class Constants {
   public static final class OIConstants {
     public static final int kDriverControllerPort = 0;
-    public static final double kDriverControllerDeadband = 0.05;
+    // public static final double kDriverControllerDeadband = 0.05;
+    public static final double kDriverControllerTranslationDeadband = 0.2;
+    public static final double kDriverControllerRotationDeadband = 0.3;
     public static final int kOperatorControllerPort = 1;
   }
 
@@ -39,7 +41,7 @@ public final class Constants {
     public static final File kConfigDirectory = new File(Filesystem.getDeployDirectory(), "swerve");
 
     public static final double kMaxSpeed = Units.feetToMeters(18);
-    public static final double kSpeedPercentage = 1;
+    public static final double kSpeedPercentage = 0.8;
     public static final double kDriveToPoseSpeedPercentage = 0.1;
     public static final boolean kMegaTag2Enabled = true;
   }
