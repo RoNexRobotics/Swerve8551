@@ -152,6 +152,10 @@ public class SwerveSubsystem extends SubsystemBase {
     m_swerve.resetOdometry(new Pose2d(8.28, 4.11, Rotation2d.fromDegrees(0)));
   }
 
+  public void zeroGyro() {
+    m_swerve.zeroGyro();
+  }
+
   public void toggleFieldRelative() {
     m_fieldRelative = !m_fieldRelative;
   }

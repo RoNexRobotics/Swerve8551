@@ -68,6 +68,8 @@ public class RobotContainer {
 
   private void configureBindings() {
 
+    m_driverJoystick.button(3).onTrue(new InstantCommand(m_swerveSubsystem::zeroGyro, m_swerveSubsystem));
+
     m_driverJoystick.button(5).onTrue(new InstantCommand(m_swerveSubsystem::toggleFieldRelative, m_swerveSubsystem));
 
     m_driverJoystick.button(6).whileTrue(new AprilTagAlignCmd(m_swerveSubsystem));
