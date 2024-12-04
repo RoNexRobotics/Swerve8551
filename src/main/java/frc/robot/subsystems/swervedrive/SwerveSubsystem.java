@@ -13,6 +13,7 @@ import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
@@ -56,6 +57,13 @@ public class SwerveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+
+    Pose3d targetPose3d = LimelightHelpers.getTargetPose3d_RobotSpace("limelight-better");
+    Pose2d targetPose2d = new Pose2d(Units.metersToInches(targetPose3d.getZ()), Units.metersToInches(targetPose3d.getX()), Rotation2d.fromRadians(targetPose3d.getRotation().getY()));
+
+    SmartDashboard.putString("Target Pose", Math.round(targetPose2d.getX()) + ", " + Math.round(targetPose2d.getY()) + " (" + Math.round(targetPose2d.getRotation().getDegrees()) + ")");
+
+    SmartDashboard.putBoolean("CanSeeTarget", LimelightHelpers.getFiducialID("limelight-better") == 1);
 
     SmartDashboard.putBoolean("Field Relative", m_fieldRelative);
 

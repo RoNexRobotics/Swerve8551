@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import frc.robot.Constants.OIConstants;
-import frc.robot.commands.AprilTagAlignCmd;
+import frc.robot.commands.AprilTagFollowCmd;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import frc.robot.util.Elastic;
 import frc.robot.util.Elastic.ElasticNotification;
@@ -55,6 +55,7 @@ public class RobotContainer {
     //     () -> -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriverControllerDeadband));
 
     m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+    // m_swerveSubsystem.setDefaultCommand(new AprilTagFollowCmd(m_swerveSubsystem));
 
     // Setup auto chooser
     autoChooser = AutoBuilder.buildAutoChooser();
@@ -72,7 +73,7 @@ public class RobotContainer {
 
     m_driverJoystick.button(5).onTrue(new InstantCommand(m_swerveSubsystem::toggleFieldRelative, m_swerveSubsystem));
 
-    m_driverJoystick.button(6).whileTrue(new AprilTagAlignCmd(m_swerveSubsystem));
+    m_driverJoystick.button(6).toggleOnTrue(new AprilTagFollowCmd(m_swerveSubsystem));
   }
 
   public Command getAutonomousCommand() {
