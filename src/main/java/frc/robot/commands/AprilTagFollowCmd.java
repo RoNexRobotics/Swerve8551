@@ -41,7 +41,7 @@ public class AprilTagFollowCmd extends Command {
     Pose3d targetPose3d = LimelightHelpers.getTargetPose3d_RobotSpace("limelight-better");
     Pose2d targetPose2d = new Pose2d(Units.metersToInches(targetPose3d.getZ()), Units.metersToInches(targetPose3d.getX()), Rotation2d.fromRadians(targetPose3d.getRotation().getY()));
 
-    Pose2d goal = new Pose2d(36, 0, Rotation2d.fromDegrees(0));
+    Pose2d goal = new Pose2d(70, 0, Rotation2d.fromDegrees(0));
 
     xSpeed = m_xController.calculate(targetPose2d.getX(), goal.getX());
     ySpeed = m_yController.calculate(targetPose2d.getY(), goal.getY());
