@@ -50,7 +50,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     m_swerve.setCosineCompensator(!RobotBase.isSimulation());
     m_swerve.setModuleEncoderAutoSynchronize(true, 0);
-    m_swerve.setHeadingCorrection(false);
+    m_swerve.setHeadingCorrection(true);
 
     setupPathPlanner();
   }
@@ -128,9 +128,9 @@ public class SwerveSubsystem extends SubsystemBase {
                   * (m_swerve.getMaximumVelocity() * SwerveConstants.kSpeedPercentage),
               Math.copySign(Math.pow(translationY.getAsDouble(), 2), translationY.getAsDouble())
                   * (m_swerve.getMaximumVelocity() * SwerveConstants.kSpeedPercentage)),
-          // Math.copySign(Math.pow(angularRotationX.getAsDouble(), 3), angularRotationX.getAsDouble()),
-          angularRotationX.getAsDouble()
-              * (m_swerve.getMaximumAngularVelocity() * SwerveConstants.kSpeedPercentage),
+          Math.copySign(Math.pow(angularRotationX.getAsDouble(), 2), angularRotationX.getAsDouble() * (m_swerve.getMaximumAngularVelocity() * SwerveConstants.kRotationSpeedPercentage)),
+          // angularRotationX.getAsDouble()
+          //     * (m_swerve.getMaximumAngularVelocity() * SwerveConstants.kSpeedPercentage),
           m_fieldRelative, false);
     }
   }
