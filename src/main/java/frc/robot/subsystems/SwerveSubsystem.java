@@ -5,17 +5,22 @@
 package frc.robot.subsystems;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.DoubleSupplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -114,6 +119,20 @@ public class SwerveSubsystem extends SubsystemBase {
     } catch (Exception e) {
       e.printStackTrace();
     }
+
+    PathPlannerLogging.setLogActivePathCallback((poses) -> {
+      if (poses.isEmpty())
+        return;
+
+      List<Trajectory.State> states = new ArrayList<>();
+      for (Pose2d pose : poses) {
+        Trajectory.State state = new Trajectory.State();
+        state.poseMeters = pose;
+        states.add(state);
+      }
+
+      m_swerve.postTrajectory(new Trajectory(states));
+    });
   }
 
   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY,
