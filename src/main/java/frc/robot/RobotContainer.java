@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Elastic;
@@ -22,7 +23,7 @@ import frc.robot.util.Elastic.Notification.NotificationLevel;
 
 public class RobotContainer {
   // Controllers
-  private final CommandJoystick m_driverController = new CommandJoystick(OIConstants.kDriverControllerPort);
+  private final CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
 
   // Subsystems
   private final SwerveSubsystem m_swerveSubsystem = new SwerveSubsystem();
@@ -40,9 +41,10 @@ public class RobotContainer {
     configureBindings();
 
     Command driveAngularVelocity = m_swerveSubsystem.driveCommand(
-        () -> -MathUtil.applyDeadband(m_driverController.getY(), OIConstants.kDriverControllerTranslationDeadband),
-        () -> -MathUtil.applyDeadband(m_driverController.getX(), OIConstants.kDriverControllerTranslationDeadband),
-        () -> -MathUtil.applyDeadband(m_driverController.getZ(), OIConstants.kDriverControllerRotationDeadband));
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriverControllerTranslationDeadband),
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriverControllerTranslationDeadband),
+        () -> -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriverControllerRotationDeadband),
+        () -> -MathUtil.applyDeadband(m_driverController.getRightY(), OIConstants.kDriverControllerRotationDeadband));
 
     m_swerveSubsystem.setDefaultCommand(driveAngularVelocity);
 
@@ -57,9 +59,7 @@ public class RobotContainer {
 
   private void configureBindings() {
 
-    m_driverController.button(3).onTrue(new InstantCommand(m_swerveSubsystem::resetGyro, m_swerveSubsystem));
-
-    m_driverController.button(5).onTrue(new InstantCommand(m_swerveSubsystem::toggleFieldRelative, m_swerveSubsystem));
+    m_driverController.leftBumper().onTrue(new InstantCommand(m_swerveSubsystem::resetGyro, m_swerveSubsystem));
   }
 
   public Command getAutonomousCommand() {

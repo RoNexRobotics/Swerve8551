@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,14 +15,19 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -38,6 +45,8 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private final SwerveDrive m_swerve;
   private boolean m_fieldRelative = true;
+  StructArrayPublisher<Pose3d> publisher = NetworkTableInstance.getDefault()
+      .getStructArrayTopic("AprilTag Poses", Pose3d.struct).publish();
 
   /** Creates a new SwerveSubsystem. */
   public SwerveSubsystem() {
@@ -74,20 +83,21 @@ public class SwerveSubsystem extends SubsystemBase {
       LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-better");
       if (Math.abs(m_swerve.getGyro().getYawAngularVelocity().magnitude()) <= 720
           && mt2 != null && mt2.tagCount != 0) {
-        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 9999999));
+        // m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 9999999));
+        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 0.7));
         m_swerve.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
       }
 
       if (mt2 != null) {
         AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
-        String[] poses = new String[mt2.rawFiducials.length];
+        Pose3d[] poses = new Pose3d[mt2.rawFiducials.length];
         for (int i = 0; i < mt2.rawFiducials.length; i++) {
-          RawFiducial rawFiducial = mt2.rawFiducials[i];
-          poses[i] = aprilTagLayout.getTagPose(rawFiducial.id).orElse(null).toString();
+          Pose3d pose = aprilTagLayout.getTagPose(mt2.rawFiducials[i].id).orElse(null);
+          poses[i] = pose;
         }
-        SmartDashboard.putStringArray("AprilTag Poses", poses);
+        publisher.set(poses);
       } else {
-        SmartDashboard.putStringArray("AprilTag Poses", new String[0]);
+        // SmartDashboard.putNumberArray("AprilTag Poses", new double[0]);
       }
 
     }
@@ -135,14 +145,30 @@ public class SwerveSubsystem extends SubsystemBase {
     });
   }
 
+  public Command driveToPose(Pose2d pose) {
+    PathConstraints constraints = new PathConstraints(
+        m_swerve.getMaximumChassisVelocity(), 4.0,
+        m_swerve.getMaximumChassisAngularVelocity(), Units.degreesToRadians(720));
+
+    return AutoBuilder.pathfindToPose(
+        pose,
+        constraints,
+        MetersPerSecond.of(0) // Goal end velocity in meters/sec
+    );
+  }
+
   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY,
-      DoubleSupplier angularRotation) {
+      DoubleSupplier headingX, DoubleSupplier headingY) {
     return run(() -> {
-      m_swerve.drive(SwerveMath.scaleTranslation(new Translation2d(
-          translationX.getAsDouble() * m_swerve.getMaximumChassisVelocity(),
-          translationY.getAsDouble() * m_swerve.getMaximumChassisVelocity()), 0.8),
-          Math.pow(angularRotation.getAsDouble(), 3) * m_swerve.getMaximumChassisAngularVelocity(), m_fieldRelative,
-          false);
+
+      Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
+          translationY.getAsDouble()), 0.8);
+
+      m_swerve.driveFieldOriented(m_swerve.swerveController.getTargetSpeeds(scaledInputs.getX(), scaledInputs.getY(),
+          headingX.getAsDouble(),
+          headingY.getAsDouble(),
+          m_swerve.getOdometryHeading().getRadians(),
+          m_swerve.getMaximumChassisVelocity()));
     });
   }
 
