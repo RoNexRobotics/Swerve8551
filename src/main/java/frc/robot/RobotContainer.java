@@ -8,6 +8,9 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -60,6 +63,10 @@ public class RobotContainer {
   private void configureBindings() {
 
     m_driverController.leftBumper().onTrue(new InstantCommand(m_swerveSubsystem::resetGyro, m_swerveSubsystem));
+
+    m_driverController.x()
+        .whileTrue(m_swerveSubsystem.alignWithAprilTag(17,
+            new Transform2d(Units.inchesToMeters(24), Units.inchesToMeters(0), Rotation2d.fromDegrees(0))));
   }
 
   public Command getAutonomousCommand() {

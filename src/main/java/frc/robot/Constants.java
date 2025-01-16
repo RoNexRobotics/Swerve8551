@@ -8,8 +8,8 @@ import edu.wpi.first.wpilibj.Filesystem;
 public final class Constants {
     public static final class SwerveConstants {
         public static final File kSwerveConfigurationDirectory = new File(Filesystem.getDeployDirectory(), "swerve");
-        // public static final double kMaxSpeed = Units.feetToMeters(14); // Theoretical
-        // max speed
+        // Theoretical no-load free speed: 21.97 ft/s
+        // More realistic max speed: 16.81 ft/s
         public static final double kMaxSpeed = Units.feetToMeters(8);
         public static final boolean kMegaTag2Enabled = true;
     }

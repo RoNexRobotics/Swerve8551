@@ -23,7 +23,10 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -34,7 +37,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.util.LimelightHelpers;
-import frc.robot.util.LimelightHelpers.RawFiducial;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
 import swervelib.parser.SwerveParser;
@@ -45,8 +47,9 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private final SwerveDrive m_swerve;
   private boolean m_fieldRelative = true;
+  AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
   StructArrayPublisher<Pose3d> publisher = NetworkTableInstance.getDefault()
-      .getStructArrayTopic("AprilTag Poses", Pose3d.struct).publish();
+      .getStructArrayTopic("SmartDashboard/Field/AprilTag Poses", Pose3d.struct).publish();
 
   /** Creates a new SwerveSubsystem. */
   public SwerveSubsystem() {
@@ -62,10 +65,14 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     // Configure swerve drive
-    m_swerve.setHeadingCorrection(true);
+    // m_swerve.setHeadingCorrection(true);
     m_swerve.setCosineCompensator(!SwerveDriveTelemetry.isSimulation);
     m_swerve.setAngularVelocityCompensation(true, true, 0.1);
     m_swerve.setModuleEncoderAutoSynchronize(true, 1);
+
+    if (SwerveDriveTelemetry.isSimulation) {
+      m_swerve.resetOdometry(new Pose2d(7.588, 4.037, Rotation2d.fromDegrees(0)));
+    }
 
     setupPathPlanner();
   }
@@ -76,6 +83,10 @@ public class SwerveSubsystem extends SubsystemBase {
     SmartDashboard.putBoolean("Field Relative", m_fieldRelative);
     SmartDashboard.putBoolean("MegaTag2", SwerveConstants.kMegaTag2Enabled);
 
+    ChassisSpeeds robotVelocity = m_swerve.getRobotVelocity();
+    double velocity = Math.hypot(robotVelocity.vxMetersPerSecond, robotVelocity.vyMetersPerSecond) * 2.23694;
+    SmartDashboard.putNumber("Speedometer (MPH)", Math.round(velocity * 1000.0) / 1000.0);
+
     if (SwerveConstants.kMegaTag2Enabled) {
       // Limelight 3G
       LimelightHelpers.SetRobotOrientation("limelight-better",
@@ -84,12 +95,11 @@ public class SwerveSubsystem extends SubsystemBase {
       if (Math.abs(m_swerve.getGyro().getYawAngularVelocity().magnitude()) <= 720
           && mt2 != null && mt2.tagCount != 0) {
         // m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 9999999));
-        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 0.7));
+        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 10));
         m_swerve.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
       }
 
       if (mt2 != null) {
-        AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
         Pose3d[] poses = new Pose3d[mt2.rawFiducials.length];
         for (int i = 0; i < mt2.rawFiducials.length; i++) {
           Pose3d pose = aprilTagLayout.getTagPose(mt2.rawFiducials[i].id).orElse(null);
@@ -97,7 +107,7 @@ public class SwerveSubsystem extends SubsystemBase {
         }
         publisher.set(poses);
       } else {
-        // SmartDashboard.putNumberArray("AprilTag Poses", new double[0]);
+        publisher.set(null);
       }
 
     }
@@ -155,6 +165,22 @@ public class SwerveSubsystem extends SubsystemBase {
         constraints,
         MetersPerSecond.of(0) // Goal end velocity in meters/sec
     );
+  }
+
+  public Command alignWithAprilTag(int id) {
+    return alignWithAprilTag(id, null);
+  }
+
+  public Command alignWithAprilTag(int id, Transform2d offset) {
+    Pose3d tagPose = aprilTagLayout.getTagPose(id).orElse(null);
+    if (tagPose == null) {
+      return null;
+    }
+
+    Pose2d targetPose = tagPose.toPose2d().transformBy(offset);
+    targetPose = new Pose2d(targetPose.getTranslation(),
+        targetPose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
+    return driveToPose(targetPose);
   }
 
   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY,
