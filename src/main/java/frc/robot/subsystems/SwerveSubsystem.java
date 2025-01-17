@@ -46,7 +46,6 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 public class SwerveSubsystem extends SubsystemBase {
 
   private final SwerveDrive m_swerve;
-  private boolean m_fieldRelative = true;
   AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
   StructArrayPublisher<Pose3d> publisher = NetworkTableInstance.getDefault()
       .getStructArrayTopic("SmartDashboard/Field/AprilTag Poses", Pose3d.struct).publish();
@@ -80,7 +79,6 @@ public class SwerveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
 
-    SmartDashboard.putBoolean("Field Relative", m_fieldRelative);
     SmartDashboard.putBoolean("MegaTag2", SwerveConstants.kMegaTag2Enabled);
 
     ChassisSpeeds robotVelocity = m_swerve.getRobotVelocity();
@@ -183,23 +181,26 @@ public class SwerveSubsystem extends SubsystemBase {
     return driveToPose(targetPose);
   }
 
+  public void drive(double translationX, double translationY, double headingX, double headingY) {
+    Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX,
+        translationY), 0.8);
+
+    m_swerve.driveFieldOriented(m_swerve.swerveController.getTargetSpeeds(scaledInputs.getX(), scaledInputs.getY(),
+        headingX,
+        headingY,
+        m_swerve.getOdometryHeading().getRadians(),
+        m_swerve.getMaximumChassisVelocity()));
+  }
+
   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY,
       DoubleSupplier headingX, DoubleSupplier headingY) {
     return run(() -> {
-
-      Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
-          translationY.getAsDouble()), 0.8);
-
-      m_swerve.driveFieldOriented(m_swerve.swerveController.getTargetSpeeds(scaledInputs.getX(), scaledInputs.getY(),
-          headingX.getAsDouble(),
-          headingY.getAsDouble(),
-          m_swerve.getOdometryHeading().getRadians(),
-          m_swerve.getMaximumChassisVelocity()));
+      drive(translationX.getAsDouble(), translationY.getAsDouble(), headingX.getAsDouble(), headingY.getAsDouble());
     });
   }
 
-  public void toggleFieldRelative() {
-    m_fieldRelative = !m_fieldRelative;
+  public void setCommandedHeading() {
+    drive(0, 0, m_swerve.getOdometryHeading().getSin(), m_swerve.getOdometryHeading().getCos());
   }
 
   public void resetGyro() {
