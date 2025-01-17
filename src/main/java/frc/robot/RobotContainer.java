@@ -65,8 +65,10 @@ public class RobotContainer {
     m_driverController.leftBumper().onTrue(new InstantCommand(m_swerveSubsystem::resetGyro, m_swerveSubsystem));
 
     m_driverController.x()
-        .whileTrue(m_swerveSubsystem.alignWithAprilTag(17,
+        .whileTrue(m_swerveSubsystem.alignWithAprilTag(18,
             new Transform2d(Units.inchesToMeters(24), Units.inchesToMeters(0), Rotation2d.fromDegrees(0))));
+
+    m_driverController.y().whileTrue(m_swerveSubsystem.alignWithNearestSector());
   }
 
   public Command getAutonomousCommand() {

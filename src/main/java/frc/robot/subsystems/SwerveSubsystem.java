@@ -166,7 +166,7 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public Command alignWithAprilTag(int id) {
-    return alignWithAprilTag(id, null);
+    return alignWithAprilTag(id, Transform2d.kZero);
   }
 
   public Command alignWithAprilTag(int id, Transform2d offset) {
@@ -179,6 +179,54 @@ public class SwerveSubsystem extends SubsystemBase {
     targetPose = new Pose2d(targetPose.getTranslation(),
         targetPose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
     return driveToPose(targetPose);
+  }
+
+  public Command alignWithNearestSector() {
+    int sector = getReefSector();
+    SmartDashboard.putNumber("REEF Sector", sector);
+    boolean isRedAlliance = false;
+    var alliance = DriverStation.getAlliance();
+    if (alliance.isPresent()) {
+      isRedAlliance = alliance.get() == DriverStation.Alliance.Red;
+    }
+    int tagId;
+
+    if (isRedAlliance) {
+      if (sector == 0) {
+        tagId = 7;
+      } else if (sector == 1) {
+        tagId = 8;
+      } else if (sector == 2) {
+        tagId = 9;
+      } else if (sector == 3) {
+        tagId = 10;
+      } else if (sector == 4) {
+        tagId = 11;
+      } else if (sector == 5) {
+        tagId = 6;
+      } else {
+        return null;
+      }
+    } else {
+      if (sector == 0) {
+        tagId = 21;
+      } else if (sector == 1) {
+        tagId = 20;
+      } else if (sector == 2) {
+        tagId = 19;
+      } else if (sector == 3) {
+        tagId = 18;
+      } else if (sector == 4) {
+        tagId = 17;
+      } else if (sector == 5) {
+        tagId = 22;
+      } else {
+        return null;
+      }
+    }
+
+    return alignWithAprilTag(tagId,
+        new Transform2d(Units.inchesToMeters(24), Units.inchesToMeters(0), Rotation2d.fromDegrees(0)));
   }
 
   public void drive(double translationX, double translationY, double headingX, double headingY) {
@@ -201,6 +249,39 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public void setCommandedHeading() {
     drive(0, 0, m_swerve.getOdometryHeading().getSin(), m_swerve.getOdometryHeading().getCos());
+  }
+
+  public int getReefSector() {
+    Pose2d robotPose = m_swerve.getPose();
+    double x = robotPose.getX();
+    double y = robotPose.getY();
+    int sector = -1;
+
+    boolean isRedAlliance = false;
+    var alliance = DriverStation.getAlliance();
+    if (alliance.isPresent()) {
+      isRedAlliance = alliance.get() == DriverStation.Alliance.Red;
+    }
+    double reefCenterX = isRedAlliance ? 13.054 : 4.476; // Example coordinates for REEF center
+    double reefCenterY = 4.037; // Example coordinates for REEF center
+
+    double minX = reefCenterX - 3.5;
+    double maxX = reefCenterX + 3.5;
+    double minY = reefCenterY - 4.5;
+    double maxY = reefCenterY + 4.5;
+
+    if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
+      double angle = Math.atan2(y - reefCenterY, x - reefCenterX);
+      angle = Math.toDegrees(angle);
+      if (angle < 0) {
+        angle += 360;
+      }
+      // Rotate the angle by 30 degrees
+      angle = (angle + 30) % 360;
+      sector = (int) (angle / 60);
+    }
+
+    return sector;
   }
 
   public void resetGyro() {
