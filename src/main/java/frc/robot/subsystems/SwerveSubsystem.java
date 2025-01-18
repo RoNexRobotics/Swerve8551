@@ -64,7 +64,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     // Configure swerve drive
-    // m_swerve.setHeadingCorrection(true);
+    m_swerve.setHeadingCorrection(true);
     m_swerve.setCosineCompensator(!SwerveDriveTelemetry.isSimulation);
     m_swerve.setAngularVelocityCompensation(true, true, 0.1);
     m_swerve.setModuleEncoderAutoSynchronize(true, 1);
@@ -79,6 +79,8 @@ public class SwerveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
 
+    SmartDashboard.putNumber("Robot X", m_swerve.getPose().getX());
+
     SmartDashboard.putBoolean("MegaTag2", SwerveConstants.kMegaTag2Enabled);
 
     ChassisSpeeds robotVelocity = m_swerve.getRobotVelocity();
@@ -88,12 +90,10 @@ public class SwerveSubsystem extends SubsystemBase {
     if (SwerveConstants.kMegaTag2Enabled) {
       // Limelight 3G
       LimelightHelpers.SetRobotOrientation("limelight-better",
-          m_swerve.getYaw().getDegrees(), 0, 0, 0, 0, 0);
-      LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-better");
-      if (Math.abs(m_swerve.getGyro().getYawAngularVelocity().magnitude()) <= 720
-          && mt2 != null && mt2.tagCount != 0) {
-        // m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 9999999));
-        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 10));
+          m_swerve.swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+      LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-better");
+      if (Math.abs(m_swerve.getGyro().getYawAngularVelocity().magnitude()) <= 720 && mt2.tagCount != 0) {
+        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 999999999));
         m_swerve.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
       }
 
@@ -123,8 +123,8 @@ public class SwerveSubsystem extends SubsystemBase {
           m_swerve::getRobotVelocity,
           (speeds, feedforwards) -> m_swerve.drive(speeds),
           new PPHolonomicDriveController(
-              new PIDConstants(5.0, 0.0, 0.0),
-              new PIDConstants(5.0, 0.0, 0.0)),
+              new PIDConstants(10.0, 0.0, 0.0),
+              new PIDConstants(18.0, 0.0, 0.0)),
           config,
           () -> {
             var alliance = DriverStation.getAlliance();
@@ -155,7 +155,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public Command driveToPose(Pose2d pose) {
     PathConstraints constraints = new PathConstraints(
-        m_swerve.getMaximumChassisVelocity(), 4.0,
+        m_swerve.getMaximumChassisVelocity(), 1.0,
         m_swerve.getMaximumChassisAngularVelocity(), Units.degreesToRadians(720));
 
     return AutoBuilder.pathfindToPose(
@@ -286,5 +286,9 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public void resetGyro() {
     m_swerve.zeroGyro();
+  }
+
+  public void resetPose() {
+    m_swerve.resetOdometry(Pose2d.kZero);
   }
 }
