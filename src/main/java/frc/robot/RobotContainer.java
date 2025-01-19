@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.AlignToNearestSectorCmd;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Elastic;
 import frc.robot.util.Elastic.Notification;
@@ -64,13 +65,13 @@ public class RobotContainer {
 
     m_driverController.leftBumper().onTrue(new InstantCommand(m_swerveSubsystem::resetGyro, m_swerveSubsystem));
 
+    m_driverController.rightBumper().onTrue(new InstantCommand(m_swerveSubsystem::resetPose, m_swerveSubsystem));
+
     m_driverController.x()
         .whileTrue(m_swerveSubsystem.alignWithAprilTag(18,
             new Transform2d(Units.inchesToMeters(48), Units.inchesToMeters(0), Rotation2d.fromDegrees(0))));
 
-    // m_driverController.y().whileTrue(m_swerveSubsystem.alignWithNearestSector());
-
-    m_driverController.b().onTrue(new InstantCommand(m_swerveSubsystem::resetPose, m_swerveSubsystem));
+    m_driverController.y().whileTrue(new AlignToNearestSectorCmd(m_swerveSubsystem));
   }
 
   public Command getAutonomousCommand() {

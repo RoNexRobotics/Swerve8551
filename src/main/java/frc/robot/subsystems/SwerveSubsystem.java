@@ -18,8 +18,6 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -34,8 +32,10 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SwerveConstants;
+import frc.robot.util.AprilTagUtils;
 import frc.robot.util.LimelightHelpers;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
@@ -46,9 +46,9 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 public class SwerveSubsystem extends SubsystemBase {
 
   private final SwerveDrive m_swerve;
-  AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
   StructArrayPublisher<Pose3d> publisher = NetworkTableInstance.getDefault()
       .getStructArrayTopic("SmartDashboard/Field/AprilTag Poses", Pose3d.struct).publish();
+  public final ReefSectors reefSectors;
 
   /** Creates a new SwerveSubsystem. */
   public SwerveSubsystem() {
@@ -62,6 +62,8 @@ public class SwerveSubsystem extends SubsystemBase {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+
+    reefSectors = new ReefSectors(m_swerve::getPose, m_swerve.field);
 
     // Configure swerve drive
     m_swerve.setHeadingCorrection(true);
@@ -79,8 +81,6 @@ public class SwerveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
 
-    SmartDashboard.putNumber("Robot X", m_swerve.getPose().getX());
-
     SmartDashboard.putBoolean("MegaTag2", SwerveConstants.kMegaTag2Enabled);
 
     ChassisSpeeds robotVelocity = m_swerve.getRobotVelocity();
@@ -92,7 +92,7 @@ public class SwerveSubsystem extends SubsystemBase {
       LimelightHelpers.SetRobotOrientation("limelight-better",
           m_swerve.swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
       LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-better");
-      if (Math.abs(m_swerve.getGyro().getYawAngularVelocity().magnitude()) <= 720 && mt2.tagCount != 0) {
+      if (mt2 != null && Math.abs(m_swerve.getGyro().getYawAngularVelocity().magnitude()) <= 720 && mt2.tagCount != 0) {
         m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 999999999));
         m_swerve.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
       }
@@ -100,7 +100,7 @@ public class SwerveSubsystem extends SubsystemBase {
       if (mt2 != null) {
         Pose3d[] poses = new Pose3d[mt2.rawFiducials.length];
         for (int i = 0; i < mt2.rawFiducials.length; i++) {
-          Pose3d pose = aprilTagLayout.getTagPose(mt2.rawFiducials[i].id).orElse(null);
+          Pose3d pose = AprilTagUtils.getAprilTagPose3d(mt2.rawFiducials[i].id);
           poses[i] = pose;
         }
         publisher.set(poses);
@@ -170,63 +170,15 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public Command alignWithAprilTag(int id, Transform2d offset) {
-    Pose3d tagPose = aprilTagLayout.getTagPose(id).orElse(null);
+    Pose3d tagPose = AprilTagUtils.getAprilTagPose3d(id);
     if (tagPose == null) {
-      return null;
+      return Commands.none();
     }
 
     Pose2d targetPose = tagPose.toPose2d().transformBy(offset);
     targetPose = new Pose2d(targetPose.getTranslation(),
         targetPose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
     return driveToPose(targetPose);
-  }
-
-  public Command alignWithNearestSector() {
-    int sector = getReefSector();
-    SmartDashboard.putNumber("REEF Sector", sector);
-    boolean isRedAlliance = false;
-    var alliance = DriverStation.getAlliance();
-    if (alliance.isPresent()) {
-      isRedAlliance = alliance.get() == DriverStation.Alliance.Red;
-    }
-    int tagId;
-
-    if (isRedAlliance) {
-      if (sector == 0) {
-        tagId = 7;
-      } else if (sector == 1) {
-        tagId = 8;
-      } else if (sector == 2) {
-        tagId = 9;
-      } else if (sector == 3) {
-        tagId = 10;
-      } else if (sector == 4) {
-        tagId = 11;
-      } else if (sector == 5) {
-        tagId = 6;
-      } else {
-        return null;
-      }
-    } else {
-      if (sector == 0) {
-        tagId = 21;
-      } else if (sector == 1) {
-        tagId = 20;
-      } else if (sector == 2) {
-        tagId = 19;
-      } else if (sector == 3) {
-        tagId = 18;
-      } else if (sector == 4) {
-        tagId = 17;
-      } else if (sector == 5) {
-        tagId = 22;
-      } else {
-        return null;
-      }
-    }
-
-    return alignWithAprilTag(tagId,
-        new Transform2d(Units.inchesToMeters(24), Units.inchesToMeters(0), Rotation2d.fromDegrees(0)));
   }
 
   public void drive(double translationX, double translationY, double headingX, double headingY) {
@@ -251,41 +203,12 @@ public class SwerveSubsystem extends SubsystemBase {
     drive(0, 0, m_swerve.getOdometryHeading().getSin(), m_swerve.getOdometryHeading().getCos());
   }
 
-  public int getReefSector() {
-    Pose2d robotPose = m_swerve.getPose();
-    double x = robotPose.getX();
-    double y = robotPose.getY();
-    int sector = -1;
-
-    boolean isRedAlliance = false;
-    var alliance = DriverStation.getAlliance();
-    if (alliance.isPresent()) {
-      isRedAlliance = alliance.get() == DriverStation.Alliance.Red;
-    }
-    double reefCenterX = isRedAlliance ? 13.054 : 4.476; // Example coordinates for REEF center
-    double reefCenterY = 4.037; // Example coordinates for REEF center
-
-    double minX = reefCenterX - 3.5;
-    double maxX = reefCenterX + 3.5;
-    double minY = reefCenterY - 4.5;
-    double maxY = reefCenterY + 4.5;
-
-    if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-      double angle = Math.atan2(y - reefCenterY, x - reefCenterX);
-      angle = Math.toDegrees(angle);
-      if (angle < 0) {
-        angle += 360;
-      }
-      // Rotate the angle by 30 degrees
-      angle = (angle + 30) % 360;
-      sector = (int) (angle / 60);
-    }
-
-    return sector;
-  }
-
   public void resetGyro() {
     m_swerve.zeroGyro();
+  }
+
+  public Pose2d getPose() {
+    return m_swerve.getPose();
   }
 
   public void resetPose() {
