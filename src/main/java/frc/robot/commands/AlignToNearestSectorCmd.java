@@ -20,7 +20,7 @@ public class AlignToNearestSectorCmd extends Command {
   private final PIDController m_yController = new PIDController(2, 0, 0);
 
   private final Transform2d offset = new Transform2d(
-      Units.inchesToMeters(0),
+      Units.inchesToMeters(36),
       Units.inchesToMeters(0),
       Rotation2d.fromDegrees(180));
 
