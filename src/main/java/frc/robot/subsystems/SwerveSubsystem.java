@@ -90,22 +90,34 @@ public class SwerveSubsystem extends SubsystemBase {
     if (SwerveConstants.kMegaTag2Enabled) {
       // Limelight 3G
       LimelightHelpers.SetRobotOrientation("limelight-better",
-          m_swerve.swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+          m_swerve.swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getDegrees(),
+          0, 0, 0, 0, 0);
       LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-better");
-      if (mt2 != null && Math.abs(m_swerve.getGyro().getYawAngularVelocity().magnitude()) <= 720 && mt2.tagCount != 0) {
+      if (mt2 != null &&
+          Math.abs(m_swerve.getGyro().getYawAngularVelocity().magnitude()) <= 720 &&
+          mt2.tagCount != 0) {
         m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 999999999));
         m_swerve.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
       }
 
-      if (mt2 != null) {
-        Pose3d[] poses = new Pose3d[mt2.rawFiducials.length];
-        for (int i = 0; i < mt2.rawFiducials.length; i++) {
-          Pose3d pose = AprilTagUtils.getAprilTagPose3d(mt2.rawFiducials[i].id);
-          poses[i] = pose;
-        }
-        publisher.set(poses);
-      } else {
-        publisher.set(null);
+      // if (mt2 != null) {
+      // Pose3d[] poses = new Pose3d[mt2.rawFiducials.length];
+      // for (int i = 0; i < mt2.rawFiducials.length; i++) {
+      // Pose3d pose = AprilTagUtils.getAprilTagPose3d(mt2.rawFiducials[i].id);
+      // poses[i] = pose;
+      // }
+      // publisher.set(poses);
+      // } else {
+      // publisher.set(null);
+      // }
+
+      LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-better");
+
+      if (mt1 != null && !((mt1.tagCount == 1 && mt1.rawFiducials.length == 1 &&
+          (mt1.rawFiducials[0].ambiguity > 0.7 || mt1.rawFiducials[0].distToCamera > 3)) ||
+          (mt1.tagCount == 0))) {
+        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(.5, .5, 0.5));
+        m_swerve.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
       }
 
     }
