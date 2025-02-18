@@ -7,19 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Example Path"
+            "pathName": "FC-REEF[B]"
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "Copy of Example Path"
+            "name": "AlignWithNearestSectorTag"
           }
         }
       ]
     }
   },
-  "resetOdom": true,
-  "folder": "Testing",
+  "resetOdom": false,
+  "folder": null,
   "choreoAuto": false
 }

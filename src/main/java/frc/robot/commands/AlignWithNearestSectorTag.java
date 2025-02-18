@@ -6,33 +6,27 @@ package frc.robot.commands;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.AprilTagUtils;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class AlignToNearestSectorCmd extends Command {
+public class AlignWithNearestSectorTag extends Command {
   private final SwerveSubsystem m_swerveSubsystem;
-  // private final PIDController m_xController = new PIDController(2, 0, 0);
-  // private final PIDController m_yController = new PIDController(2, 0, 0);
+
   private final ProfiledPIDController m_xController = new ProfiledPIDController(2, 0, 0,
       new TrapezoidProfile.Constraints(2, 2));
   private final ProfiledPIDController m_yController = new ProfiledPIDController(2, 0, 0,
       new TrapezoidProfile.Constraints(2, 2));
 
-  private final Transform2d offset = new Transform2d(
-      Units.inchesToMeters(24),
-      Units.inchesToMeters(0),
-      Rotation2d.fromDegrees(180));
+  private final Transform2d m_offset;
 
   /** Creates a new AlignToNearestSectorCmd. */
-  public AlignToNearestSectorCmd(SwerveSubsystem swerveSubsystem) {
+  public AlignWithNearestSectorTag(SwerveSubsystem swerveSubsystem, Transform2d offset) {
     m_swerveSubsystem = swerveSubsystem;
+    m_offset = offset;
 
     addRequirements(swerveSubsystem);
   }
@@ -53,12 +47,7 @@ public class AlignToNearestSectorCmd extends Command {
       return;
 
     Pose2d tagPose = AprilTagUtils.getAprilTagPose3d(tagId).toPose2d();
-    Pose2d targetPose = tagPose.transformBy(offset);
-
-    SmartDashboard.putNumber("X error",
-        Math.round(Units.metersToInches(m_xController.getPositionError()) * 1000) / 1000);
-    SmartDashboard.putNumber("Y error",
-        Math.round(Units.metersToInches(m_yController.getPositionError()) * 1000) / 1000);
+    Pose2d targetPose = tagPose.transformBy(m_offset);
 
     m_swerveSubsystem.drive(
         m_xController.calculate(m_swerveSubsystem.getPose().getX(), targetPose.getX()),
